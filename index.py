@@ -9,7 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 ollama = Ollama(base_url="http://localhost:11434", model="llama3")
 
-loader = WebBaseLoader('https://www.dr.dk/')
+loader = WebBaseLoader('https://www.cnn.com/')
 data = loader.load()
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
@@ -18,9 +18,12 @@ all_chunks = text_splitter.split_documents(data)
 vectore_store = Chroma.from_documents(documents=all_chunks, embedding=GPT4AllEmbeddings())
 
 system_prompt = (
-    "Using the retrieved documents, translate the documents to English, and find the news about war between Israel and Hamas."
-    "Context: {context}"
+    "Using the retrieved documents, answer the questions asked. "
+    "add the links to the news. "
+    "Context: {context}. "
 )
+
+print(system_prompt)
 
 prompt = ChatPromptTemplate.from_messages(
     [
@@ -32,6 +35,10 @@ prompt = ChatPromptTemplate.from_messages(
 doc_combination_chain = create_stuff_documents_chain(ollama, prompt)
 full_chain = create_retrieval_chain(vectore_store.as_retriever(), doc_combination_chain)
 
-query = "What are the most important news on DR.dk?"
+query = "What are the most important news on CNN.com?"
+result = full_chain.invoke({"input": query})
+print(result)
+
+query = "What are the most important news about Iran?"
 result = full_chain.invoke({"input": query})
 print(result)
