@@ -198,6 +198,7 @@ class ChatbotPipeline:
         loader = WebBaseLoader(url)
         return loader.load()
 
+
     @staticmethod
     def recursive_character_text_splitter(chunk_size=500, chunk_overlap=0):
         """
