@@ -231,10 +231,16 @@ for message in stored_messages[-2:]:
 return Truechain_with_trimming = (
     RunnablePassthrough.assign(messages_trimmed=trim_messages)
     | chain_with_message_history
-)Let's call this new chain and check the messages afterwards:chain_with_trimming.invoke(
+)
+
+#Let's call this new chain and check the messages
+afterwards:chain_with_trimming.invoke(
     {"input": "Where does P. Sherman live?"},
     {"configurable": {"session_id": "unused"}},
-)AIMessage(content="P. Sherman's address is 42 Wallaby Way, Sydney.")demo_ephemeral_chat_history.messages[HumanMessage(content="What's my name?"),
+)
+
+AIMessage(content="P. Sherman's address is 42 Wallaby Way, Sydney.")
+demo_ephemeral_chat_history.messages[HumanMessage(content="What's my name?"),
  AIMessage(content='Your name is Nemo.'),
  HumanMessage(content='Where does P. Sherman live?'),
  AIMessage(content="P. Sherman's address is 42 Wallaby Way, Sydney.")]
@@ -316,7 +322,7 @@ def summarize_messages(chain_input):
     | chain_with_message_history
 )
 
-Let's see if it remembers the name we gave it:
+# Let's see if it remembers the name we gave it:
 
 chain_with_summarization.invoke(
     {"input": "What did I say my name was?"},

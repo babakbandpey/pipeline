@@ -1,8 +1,9 @@
 # https://python.langchain.com/docs/use_cases/chatbots/memory_management/
 
 import sys
-from libs.ChatbotPipeline import ChatbotPipeline
 import datetime
+from libs.chatbot_pipeline import ChatbotPipeline
+
 
 def main():
     """

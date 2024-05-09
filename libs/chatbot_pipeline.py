@@ -1,3 +1,25 @@
+"""
+This class defines a pipeline for a chatbot that retrieves documents from a
+website and answers questions based on the retrieved documents.
+
+The pipeline consists of the following steps:
+1. Setup the Ollama object with the specified base URL and model.
+2. Setup the prompt for the chatbot.
+3. Setup the chat prompt for the chatbot.
+4. Load the data from the specified loader.
+5. Split the data into chunks using the specified text splitter.
+6. Setup the vector store with the specified chunks.
+7. Process the data using the specified loader and text splitter.
+8. Setup the chains for the chatbot.
+9. Query the full chain with the specified query.
+10. Read the file at the specified path.
+11. Get the chat chain for the chatbot.
+12. Invoke the chatbot with the specified query.
+13. Clear the chat history.
+14. Load the data from the specified URL.
+"""
+
+import uuid
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.llms import Ollama
 from langchain_community.document_loaders import WebBaseLoader
@@ -6,7 +28,7 @@ from langchain_community.vectorstores import Chroma
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from langchain.memory import ChatMessageHistory
-from langchain_core.messages import HumanMessage, AIMessage
+# from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
@@ -17,6 +39,11 @@ class ChatbotPipeline:
     """
 
     def __init__(self, base_url, model):
+        """
+        Initializes the ChatbotPipeline object.
+        params: base_url: The base URL of the Ollama server.
+        params: model: The name of the model to use.
+        """
         self.ollama = self.setup_ollama(base_url, model)
         self.prompt = self.setup_prompt()
         self.vector_store = None  # Will be initialized later when data is ready
@@ -28,6 +55,8 @@ class ChatbotPipeline:
             input_messages_key="input",
             history_messages_key="chat_history",
         )
+        # This is a unique session ID for the chatbot to keep track of the conversation
+        self.chat_session_id = self.generate_session_id()
 
     def setup_ollama(self, base_url, model):
         """
@@ -101,7 +130,23 @@ class ChatbotPipeline:
         returns: The initialized vector store.
         '''
 
-        self.vector_store = Chroma.from_documents(documents=all_chunks, embedding=GPT4AllEmbeddings())
+        self.vector_store = Chroma.from_documents(
+            documents=all_chunks,
+            embedding=GPT4AllEmbeddings())
+
+
+    def process_data(self, loader, text_splitter):
+        '''
+        Processes the data using the specified loader and text splitter.
+        params: loader: The loader object to load the data
+        params: text_splitter: The text splitter object to split the data with.
+        returns: The retrieval chain for the chatbot.
+        '''
+
+        data = self.load_data(loader)
+        all_chunks = self.split_data(text_splitter, data)
+        self.setup_vector_store(all_chunks)
+        return self.setup_chains()
 
 
     def setup_chains(self):
@@ -114,29 +159,15 @@ class ChatbotPipeline:
         return create_retrieval_chain(self.vector_store.as_retriever(), doc_combination_chain)
 
 
-    def query_chain(self, full_chain, query):
+    def query_chain(self, retrieval_chain, query):
         '''
         Queries the full chain with the specified query.
-        params: full_chain: The full chain to query.
+        params: retrieval_chain: The full chain to query.
         params: query: The query to use.
         '''
 
-        result = full_chain.invoke({"input": query})
+        result = retrieval_chain.invoke({"input": query})
         print(result)
-
-
-    def process_data(self, loader, text_splitter):
-        '''
-        Processes the data using the specified loader and text splitter.
-        params: loader: The loader object to load the data
-        params: text_splitter: The text splitter object to split the data with.
-        returns: The full chain for the chatbot.
-        '''
-
-        data = self.load_data(loader)
-        all_chunks = self.split_data(text_splitter, data)
-        self.setup_vector_store(all_chunks)
-        return self.setup_chains()
 
 
     @staticmethod
@@ -170,7 +201,7 @@ class ChatbotPipeline:
 
         response = self.chain_with_message_history.invoke(
             {"input": prompt,},
-            {"configurable": {"session_id": "unused"}},
+            {"configurable": {"session_id": self.chat_session_id}},
         )
 
         # Add AI's response to the chat history
@@ -208,5 +239,16 @@ class ChatbotPipeline:
         returns: The split data.
         """
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap)
         return text_splitter
+
+
+    @staticmethod
+    def generate_session_id():
+        """
+        Generates a unique session ID.
+        returns: A unique session ID.
+        """
+        return str(uuid.uuid4())
