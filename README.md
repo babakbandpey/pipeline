@@ -1,4 +1,3 @@
-
 # Chatbot and Web Retrieval Pipeline
 
 ## Overview
@@ -16,6 +15,8 @@ This repository contains the implementation of two main classes: `ChatbotPipelin
 
 - Python 3.6+
 - Dependencies from Langchain library
+- Ollama
+- llama3
 
 ## Installation
 
@@ -24,6 +25,32 @@ Clone this repository:
 ```bash
 git clone https://github.com/babakbandpey/pipeline.git
 cd pipeline
+```
+
+
+---
+
+## Installation and Usage Instructions for llama3
+
+For detailed instructions on installing Ollama and running the `llama3` model, please visit the following site:
+
+[Ollama Llama3 Library Instructions](https://ollama.com/library/llama3)
+
+This link provides comprehensive guidance on setup, configuration, and operation of the `llama3` model within the Ollama framework.
+
+---
+
+
+Create a virtual environment:
+
+```bash
+python3 -m venv env
+```
+
+Activate the virtual environment:
+
+```bash
+source env/bin/activate
 ```
 
 Install required packages:
@@ -71,7 +98,6 @@ print(pipeline.chat_history.messages)
 ## Contributing
 
 Contributions are welcome! Please read the contributing guide to learn how you can propose bug fixes and improvements.
-
 
 ## Chatbot Interaction Guide
 
@@ -140,7 +166,6 @@ This setup ensures that your interaction with the chatbot is smooth and user-fri
 ---
 
 This guide provides users with clear instructions on how to interact with the chatbot, utilize commands, and handle common scenarios during the chat session. It enhances the usability of your application by detailing the operational aspects and user interactions.
-
 
 ## License
 
