@@ -172,10 +172,9 @@ class Pipeline:
     @staticmethod
     def setup_chat_prompt():
         """
-        Sets up the chat prompt for the chatbot.
-        returns: The initialized ChatPromptTemplate object.
+        Placeholder method for setting up the chat prompt.
         """
-        pass
+        print("If you are seeing this message: Chat prompt not implemented.")
 
 
 

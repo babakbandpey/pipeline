@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # pipeline = WebRetrievalPipeline(base_url="http://localhost:11434", model="llama3", url = "https://www.cnn.com/")
     try:
         while True:
-            prompt = input("Enter your message: ")
+            prompt = input("\n** Enter your message: ")
             if prompt == "/exit":
                 print("\n\nGoodbye!\n\n")
                 sys.exit(0)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
             if prompt == "/history":
                 print(pipeline.chat_history.messages)
                 continue
-            print(pipeline.invoke(prompt))
+            print("\n\n++Chatbot: ", pipeline.invoke(prompt))
     except KeyboardInterrupt:
         print("\n\nGoodbye!\n\n")
         sys.exit(0)
