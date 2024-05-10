@@ -2,6 +2,8 @@
 This class defines a pipeline for integrating Ollama with the Langchain library.
 This class is in its early stages and will be updated as the project progresses.
 Git Repo: https://github.com/babakbandpey/pipeline
+
+Documentation: https://python.langchain.com/docs/use_cases/chatbots/memory_management/
 """
 
 import uuid

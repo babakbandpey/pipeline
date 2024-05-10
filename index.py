@@ -1,56 +1,84 @@
-# https://python.langchain.com/docs/use_cases/chatbots/memory_management/
-
+import sys
 import os
 import datetime
 from libs.pipeline import ChatbotPipeline, WebRetrievalPipeline
 
 
-def handle_command():
+def save_chat_history(pipeline):
+    """
+    Save the chat history.
+    :param pipeline: The pipeline.
+    """
+
+    if not os.path.exists("history"):
+        os.makedirs("history")
+    filename = f"chat_history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    path = os.path.join("history", filename)
+    with open(path, "w", encoding='utf-8') as file:
+        for index, message in enumerate(pipeline.chat_history.messages):
+            file.write(f"{index + 1}. {message}\n")
+    print(f"Chat history saved to {filename}")
+
+
+def handle_command(prompt: str, pipeline: ChatbotPipeline):
     """
     Handle the command.
+    :param prompt: The prompt.
+    :param pipeline: The pipeline.
     """
 
-    if prompt == "/reset":
-        pipeline.clear_chat_history()
-        return "/history"
-    elif prompt == "/history":
-        history = pipeline.chat_history.messages
-        if history:
-            for index, message in enumerate(history):
-                print(f"{index + 1}. {message}")
-        else:
+    def default_action():
+        print("\n\n++Chatbot: ", pipeline.invoke(prompt))
+
+    def exit_chat():
+        print("\n\nGoodbye!\n\n")
+        sys.exit(0)
+
+    def show_history():
+        """
+        Show the chat history.
+        :return: True if the chat history is shown, False otherwise.
+        """
+        if not pipeline.chat_history.messages:
             print("No chat history.")
-    elif "/delete" in prompt:
-        try:
-            index = int(prompt.split()[1])
-            pipeline.modify_chat_history(index - 1)
-        except (IndexError, ValueError):
-            print("Invalid index provided.")
-        return "/history"
-    elif prompt == "/summarize":
-        pipeline.summarize_messages()
-        return "/history"
-    elif prompt == "/save":
-        # save the chat history to a file called
-        # chat_history_<datetime>.md under the ./history folder
-        history = pipeline.chat_history.messages
+            return False
 
-        # check if the history folder exists, if not, create it
-        if not os.path.exists("history"):
-            os.makedirs("history")
+        for index, message in enumerate(pipeline.chat_history.messages):
+            print(f"{index + 1}. {message}")
 
-        filename = os.path.join(
-            "history",
-            f"chat_history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
-        
-        with open(filename, "w", encoding='utf-8') as file:
-            for index, message in enumerate(history):
-                file.write(f"{index + 1}. {message}\n")
+        return True
 
-    elif prompt == "/help":
-        print_commands_help()
-        return None
-    return None
+    def delete_message():
+        """
+        Delete a message from the chat history.
+        """
+        if show_history():
+            number = int(input("""
+                        Enter the number of the message to delete.
+                        Positive number deletes from the beginning.
+                        Negative number deletes from the end: """))
+
+            if number:
+                if pipeline.modify_chat_history(number - 1):
+                    print("Message deleted.")
+                else:
+                    print("Invalid number provided.")
+            else:
+                print("Invalid number provided.")
+
+    commands = {
+        "/exit": exit_chat,
+        "/reset": lambda: (pipeline.clear_chat_history(), "/history")[1],
+        "/history": lambda: (show_history(), None)[1],
+        "/delete": lambda: (delete_message(), "/history")[1],
+        "/summarize": lambda: (pipeline.summarize_messages(), "/history")[1],
+        "/save": lambda: save_chat_history(pipeline),
+        "/help": print_commands_help
+    }
+
+    # Retrieve the function from the dictionary and call it, if not found, call default_action
+    action = commands.get(prompt, default_action)
+    return action()
 
 
 def print_commands_help():
@@ -77,36 +105,29 @@ def main():
     """
     The main function.
     """
-
-if __name__ == "__main__":
-
     # write the date and the time of the conversation
     print("\n\nWelcome to the chatbot!\n\n")
     print("Today's date and time: ", datetime.datetime.now(), "\n\n")
+
+    next_prompt = None
+    # url = "https://python.langchain.com/v0.1/docs/use_cases/chatbots/memory_management/"
 
     pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
     # pipeline = WebRetrievalPipeline(
     #     base_url="http://localhost:11434",
     #     model="llama3",
-    #     url="https://python.langchain.com/v0.1/docs/use_cases/chatbots/memory_management/"
+    #     url=url
     # )
-
-    NEXT_PROMPT = None
 
     try:
         while True:
-            prompt = input("\n** Enter your message: ") if 'NEXT_PROMPT' not in globals() or NEXT_PROMPT is None else NEXT_PROMPT
-            NEXT_PROMPT = None
-
-            if prompt == "/exit":
-                print("\n\nGoodbye!\n\n")
-                break
-
-            next_action = handle_command()
-            if next_action:
-                NEXT_PROMPT = next_action
-            else:
-                print("\n\n++Chatbot: ", pipeline.invoke(prompt))
-
+            next_prompt = handle_command(
+                input("\n** Enter your message: ") if next_prompt is None else next_prompt,
+                pipeline
+            )
     except KeyboardInterrupt:
         print("\n\nGoodbye!\n\n")
+
+
+if __name__ == "__main__":
+    main()
