@@ -1,3 +1,4 @@
 env/
 **/*.pyc
 **/__pycache__/
+**/chat_history*.md

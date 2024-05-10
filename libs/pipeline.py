@@ -159,7 +159,7 @@ class Pipeline:
 
     def summarize_messages(self):
         """
-        Summarizes the chat history.
+        Summarizes the chat history and deletes the messages.
         returns: True if the chat history is summarized, False otherwise.
         """
 
