@@ -1,22 +1,7 @@
 """
-This class defines a pipeline for a chatbot that retrieves documents from a
-website and answers questions based on the retrieved documents.
-
-The pipeline consists of the following steps:
-1. Setup the Ollama object with the specified base URL and model.
-2. Setup the prompt for the chatbot.
-3. Setup the chat prompt for the chatbot.
-4. Load the data from the specified loader.
-5. Split the data into chunks using the specified text splitter.
-6. Setup the vector store with the specified chunks.
-7. Process the data using the specified loader and text splitter.
-8. Setup the chains for the chatbot.
-9. Query the full chain with the specified query.
-10. Read the file at the specified path.
-11. Get the chat chain for the chatbot.
-12. Invoke the chatbot with the specified query.
-13. Clear the chat history.
-14. Load the data from the specified URL.
+This class defines a pipeline for integrating Ollama with the Langchain library.
+This class is in its early stages and will be updated as the project progresses.
+Git Repo: https://github.com/babakbandpey/pipeline
 """
 
 import uuid
