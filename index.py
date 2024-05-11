@@ -1,8 +1,9 @@
 import sys
 import os
 import datetime
-from libs.pipeline import ChatbotPipeline, WebRetrievalPipeline
-
+from pipeline.chatbot_pipeline import ChatbotPipeline
+from pipeline.web_retrieval_pipeline import WebRetrievalPipeline
+from pipeline.python_rag_pipeline import PythonRAGPipeline
 
 def save_chat_history(pipeline):
     """
@@ -110,14 +111,22 @@ def main():
     print("Today's date and time: ", datetime.datetime.now(), "\n\n")
 
     next_prompt = None
-    # url = "https://python.langchain.com/v0.1/docs/use_cases/chatbots/memory_management/"
 
-    pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
+
+    # pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
+
+    # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
     # pipeline = WebRetrievalPipeline(
     #     base_url="http://localhost:11434",
     #     model="llama3",
     #     url=url
     # )
+
+    pipeline = PythonRAGPipeline(
+        base_url="http://localhost:11434",
+        model="llama3",
+        path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
+    )
 
     try:
         while True:

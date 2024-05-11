@@ -1,3 +1,6 @@
+"""
+This file is used to add the project root directory to the sys.path so that
+"""
 import sys
 import os
 
