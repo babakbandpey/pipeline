@@ -4,6 +4,7 @@ import datetime
 from pipeline.chatbot import Chatbot
 from pipeline.web_rag import WebRAG
 from pipeline.python_rag import PythonRAG
+from pipeline.text_rag import TextRAG
 
 BASE_URL="http://localhost:11434"
 MODEL="llama3"
