@@ -5,14 +5,14 @@ from pipeline.chatbot import Chatbot
 from pipeline.web_rag import WebRAG
 from pipeline.python_rag import PythonRAG
 
-# BASE_URL="http://localhost:11434",
-# MODEL="llama3"
+BASE_URL="http://localhost:11434"
+MODEL="llama3"
 
 # BASE_URL="http://localhost:11434",
 # MODEL="phi3"
 
-BASE_URL = "http://localhost:1234/v1"
-MODEL = None
+# BASE_URL = "http://localhost:1234/v1"
+# MODEL = None
 
 def save_chat_history(pipeline):
     """
@@ -124,18 +124,18 @@ def main():
 
     # pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
 
-    url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
-    pipeline = WebRAG(
+    # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
+    # pipeline = WebRAG(
+    #     base_url=BASE_URL,
+    #     model=MODEL,
+    #     url=url
+    # )
+
+    pipeline = PythonRAG(
         base_url=BASE_URL,
         model=MODEL,
-        url=url
+        path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
     )
-
-    # pipeline = PythonRAG(
-    #     base_url="http://localhost:11434",
-    #     model="llama3",
-    #     path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
-    # )
 
     try:
         while True:
