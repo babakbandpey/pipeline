@@ -2,7 +2,7 @@ from pipeline.pipeline import Pipeline
 from pipeline.pipeline import ChatPromptTemplate, MessagesPlaceholder
 
 # CHATBOT PIPELINE
-class ChatbotPipeline(Pipeline):
+class Chatbot(Pipeline):
     """_summary_
     Pipeline for a chatbot
     """

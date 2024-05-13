@@ -1,9 +1,18 @@
 import sys
 import os
 import datetime
-from pipeline.chatbot_pipeline import ChatbotPipeline
-from pipeline.web_retrieval_pipeline import WebRetrievalPipeline
-from pipeline.python_rag_pipeline import PythonRAGPipeline
+from pipeline.chatbot import Chatbot
+from pipeline.web_rag import WebRAG
+from pipeline.python_rag import PythonRAG
+
+# BASE_URL="http://localhost:11434",
+# MODEL="llama3"
+
+# BASE_URL="http://localhost:11434",
+# MODEL="phi3"
+
+BASE_URL = "http://localhost:1234/v1"
+MODEL = None
 
 def save_chat_history(pipeline):
     """
@@ -21,7 +30,7 @@ def save_chat_history(pipeline):
     print(f"Chat history saved to {filename}")
 
 
-def handle_command(prompt: str, pipeline: ChatbotPipeline):
+def handle_command(prompt: str, pipeline: Chatbot):
     """
     Handle the command.
     :param prompt: The prompt.
@@ -115,18 +124,18 @@ def main():
 
     # pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
 
-    # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
-    # pipeline = WebRetrievalPipeline(
+    url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
+    pipeline = WebRAG(
+        base_url=BASE_URL,
+        model=MODEL,
+        url=url
+    )
+
+    # pipeline = PythonRAG(
     #     base_url="http://localhost:11434",
     #     model="llama3",
-    #     url=url
+    #     path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
     # )
-
-    pipeline = PythonRAGPipeline(
-        base_url="http://localhost:11434",
-        model="llama3",
-        path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
-    )
 
     try:
         while True:

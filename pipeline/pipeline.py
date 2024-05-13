@@ -15,7 +15,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 # from langchain_core.messages import HumanMessage, AIMessage
 from langchain.memory import ChatMessageHistory
-
+from langserve import RemoteRunnable
 
 
 # The base class for the ChatbotPipeline and RetrievalPipeline
@@ -61,6 +61,16 @@ class Pipeline:
         params: model: The name of the model to use.
         returns: The initialized Ollama object.
         """
+
+        if model is None:
+            from langchain_openai import ChatOpenAI
+            llm: ChatOpenAI = ChatOpenAI(
+                base_url=base_url,
+                temperature=0,
+                api_key="not-needed"
+            )
+
+            return llm
 
         return Ollama(base_url=base_url, model=model)
 
