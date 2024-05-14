@@ -7,6 +7,7 @@ Documentation: https://python.langchain.com/docs/use_cases/chatbots/memory_manag
 """
 
 import uuid
+from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import GPT4AllEmbeddings
@@ -15,8 +16,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 # from langchain_core.messages import HumanMessage, AIMessage
 from langchain.memory import ChatMessageHistory
-from langserve import RemoteRunnable
-
+from openai import APIConnectionError
 
 # The base class for the ChatbotPipeline and RetrievalPipeline
 class Pipeline:
@@ -24,13 +24,18 @@ class Pipeline:
     Represents a pipeline for the chatbot.
     """
 
-    def __init__(self, base_url, model):
+    def __init__(self, **kwargs):
         """
         Initializes the Pipeline object.
         params: base_url: The base URL of the Ollama server.
         params: model: The name of the model to use.
         """
-        self.chat = self.setup_chat(base_url, model)
+
+        self.base_url = kwargs.get('base_url', None)
+        self.model = kwargs.get('model', None)
+        self.openai_api_key = kwargs.get('openai_api_key', None)
+
+        self.chat = self.setup_chat()
         self.chat_history = ChatMessageHistory()
         self.chat_prompt = self.setup_chat_prompt()
         self.vector_store = None
@@ -40,21 +45,21 @@ class Pipeline:
 
 
     def setup_chain_with_message_history(self):
-            """
-            Sets up a chain with message history.
+        """
+        Sets up a chain with message history.
 
-            Returns:
-                RunnableWithMessageHistory: A runnable object with message history.
-            """
-            return RunnableWithMessageHistory(
-                self.setup_chain(),
-                lambda session_id: self.chat_history,
-                input_messages_key="input",
-                history_messages_key="chat_history",
-            )
+        Returns:
+            RunnableWithMessageHistory: A runnable object with message history.
+        """
+        return RunnableWithMessageHistory(
+            self.setup_chain(),
+            lambda session_id: self.chat_history,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+        )
 
 
-    def setup_chat(self, base_url, model):
+    def setup_chat(self):
         """
         Sets up the Ollama object with the specified base URL and model.
         params: base_url: The base URL of the Ollama server.
@@ -62,17 +67,38 @@ class Pipeline:
         returns: The initialized Ollama object.
         """
 
-        if model is None:
-            from langchain_openai import ChatOpenAI
-            llm: ChatOpenAI = ChatOpenAI(
-                base_url=base_url,
-                temperature=0,
-                api_key="not-needed"
-            )
+        try:
 
-            return llm
+            if self.openai_api_key is not None and self.model is not None and self.base_url is not None:
+                # OpenAI
+                chat: ChatOpenAI = ChatOpenAI(
+                    base_url=self.base_url,
+                    temperature=0,
+                    api_key=self.openai_api_key,
+                    model=self.model
+                )
+            elif self.model is None and self.base_url is not None:
+                # LM Studio
+                chat: ChatOpenAI = ChatOpenAI(
+                    base_url=self.base_url,
+                    temperature=0,
+                    api_key=self.openai_api_key if self.openai_api_key is not None else "not-needed"
+                )
+            else:
+                # Ollama
+                chat = Ollama(
+                    base_url=self.base_url,
+                    model=self.model
+                )
 
-        return Ollama(base_url=base_url, model=model)
+            return chat
+
+        except APIConnectionError as e:
+            print(f"API Connection Error: {e}")
+            raise e
+        except Exception as e:
+            print(f"Unknown exception occured: {e}")
+            return None
 
 
     @staticmethod

@@ -3,7 +3,7 @@ from pipeline.pipeline import ChatPromptTemplate, MessagesPlaceholder
 
 # CHATBOT PIPELINE
 class Chatbot(Pipeline):
-    """_summary_
+    """
     Pipeline for a chatbot
     """
 

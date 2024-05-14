@@ -22,9 +22,8 @@ class PythonRAG(Retrieval):
         Initializes the PythonRAG object.
         params: kwargs: Dictionary containing configuration parameters.
         """
-        base_url = kwargs.get('base_url')
-        model = kwargs.get('model')
-        super().__init__(base_url=base_url, model=model)
+
+        super().__init__(**kwargs)
 
         self.path = kwargs.get('path')
         self.git_url = kwargs.get('git_url')

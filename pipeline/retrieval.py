@@ -119,7 +119,6 @@ class Retrieval(Pipeline):
         """
         self.chat_history.add_user_message(prompt)
         response = super().invoke(prompt)
-        print(response)
         answer = response["answer"]
         self.chat_history.add_ai_message(answer)
         return answer
