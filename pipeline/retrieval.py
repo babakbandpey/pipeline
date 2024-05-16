@@ -1,38 +1,29 @@
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
-from pipeline.pipeline import Pipeline
+from pipeline import Pipeline
 
 class Retrieval(Pipeline):
-
-    @staticmethod
-    def setup_chat_prompt():
+    """
+    Pipeline for a chatbot that retrieves documents and answers questions
+    based on the retrieved documents.
+    """
+    def setup_chat_prompt(self, system_template=None):
         """
         Sets up the prompt for the chatbot.
-        returns: The initialized ChatPromptTemplate object.
+        params: system_template: The system template to use.
         """
+        if system_template is None:
+            system_template = """
+            Answer the user's questions based on the below context.
+            If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
 
-        system_template = """
-        Answer the user's questions based on the below context.
-        If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
+            <context>
+            {context}
+            </context>
+            """
 
-        <context>
-        {context}
-        </context>
-        """
-
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    system_template
-                ),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("user", "{input}"),
-            ]
-        )
-
-        return prompt
+        super().setup_chat_prompt(system_template)
 
 
     def setup_chain(self, search_type=None, search_kwargs=None):
@@ -119,7 +110,6 @@ class Retrieval(Pipeline):
         """
         self.chat_history.add_user_message(prompt)
         response = super().invoke(prompt)
-        print(response)
         answer = response["answer"]
         self.chat_history.add_ai_message(answer)
         return answer

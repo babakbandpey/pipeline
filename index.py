@@ -1,63 +1,75 @@
 import sys
 import os
 import datetime
-from pipeline.chatbot import Chatbot
-from pipeline.web_rag import WebRAG
-from pipeline.python_rag import PythonRAG
-from pipeline.text_rag import TextRAG
+import pipeline
 
-BASE_URL="http://localhost:11434"
-MODEL="llama3"
+# Ollama
+# BASE_URL="http://localhost:11434"
+# MODEL="llama3"
+# OPENAI_API_KEY = None
 
+# Ollama
 # BASE_URL="http://localhost:11434",
 # MODEL="phi3"
+# OPENAI_API_KEY = None
 
+# LM Studio
 # BASE_URL = "http://localhost:1234/v1"
 # MODEL = None
+# OPENAI_API_KEY = None
 
-def save_chat_history(pipeline):
-    """
-    Save the chat history.
-    :param pipeline: The pipeline.
-    """
-
-    if not os.path.exists("history"):
-        os.makedirs("history")
-    filename = f"chat_history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-    path = os.path.join("history", filename)
-    with open(path, "w", encoding='utf-8') as file:
-        for index, message in enumerate(pipeline.chat_history.messages):
-            file.write(f"{index + 1}. {message}\n")
-    print(f"Chat history saved to {filename}")
+# OPENAI
+BASE_URL = "https://api.openai.com/v1/"
+MODEL = "gpt-4o"
+OPENAI_API_KEY = pipeline.OPENAI_API_KEY
 
 
-def handle_command(prompt: str, pipeline: Chatbot):
+def handle_command(prompt: str, chatbot: pipeline.Chatbot):
     """
     Handle the command.
     :param prompt: The prompt.
-    :param pipeline: The pipeline.
+    :param chatbot: The pipeline.Chatbot.
     """
 
+    def save_chat_history():
+        """
+        Save the chat history.
+        :param pipeline: The pipeline.
+        """
+
+        if not os.path.exists("history"):
+            os.makedirs("history")
+        filename = f"chat_history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        path = os.path.join("history", filename)
+        with open(path, "w", encoding='utf-8') as file:
+            for index, message in enumerate(chatbot.chat_history.messages):
+                file.write(f"{index + 1}. {message}\n")
+        print(f"Chat history saved to {filename}")
+
+
     def default_action():
-        print("\n\n++Chatbot: ", pipeline.invoke(prompt))
+        print("\n\n++Chatbot: ", chatbot.invoke(prompt))
+
 
     def exit_chat():
         print("\n\nGoodbye!\n\n")
         sys.exit(0)
+
 
     def show_history():
         """
         Show the chat history.
         :return: True if the chat history is shown, False otherwise.
         """
-        if not pipeline.chat_history.messages:
+        if not chatbot.chat_history.messages:
             print("No chat history.")
             return False
 
-        for index, message in enumerate(pipeline.chat_history.messages):
+        for index, message in enumerate(chatbot.chat_history.messages):
             print(f"{index + 1}. {message}")
 
         return True
+
 
     def delete_message():
         """
@@ -70,46 +82,47 @@ def handle_command(prompt: str, pipeline: Chatbot):
                         Negative number deletes from the end: """))
 
             if number:
-                if pipeline.modify_chat_history(number - 1):
+                if chatbot.modify_chat_history(number - 1):
                     print("Message deleted.")
                 else:
                     print("Invalid number provided.")
             else:
                 print("Invalid number provided.")
 
+
+    def print_commands_help():
+        """
+        Print the commands help.
+        """
+
+        print("\n\n++Chatbot: ", """
+            Commands:
+            /exit (to exit the chatbot),
+            /reset (to reset the chat history),
+            /history (to see the chat history),
+            /delete <index> (e.g., /delete 3 or /delete -4)
+                    Number of messages which are to be deleted.
+                    Positive index deletes from the start,
+                    negative index deletes from the end.
+            /summarize (to summarize the chat history),
+            /save (to save the chat history),
+            /help
+            """
+        )
+
     commands = {
         "/exit": exit_chat,
-        "/reset": lambda: (pipeline.clear_chat_history(), "/history")[1],
+        "/reset": lambda: (chatbot.clear_chat_history(), "/history")[1],
         "/history": lambda: (show_history(), None)[1],
         "/delete": lambda: (delete_message(), "/history")[1],
-        "/summarize": lambda: (pipeline.summarize_messages(), "/history")[1],
-        "/save": lambda: save_chat_history(pipeline),
+        "/summarize": lambda: (chatbot.summarize_messages(), "/history")[1],
+        "/save": save_chat_history,
         "/help": print_commands_help
     }
 
     # Retrieve the function from the dictionary and call it, if not found, call default_action
     action = commands.get(prompt, default_action)
     return action()
-
-
-def print_commands_help():
-    """
-    Print the commands help.
-    """
-
-    print("\n\n++Chatbot: ", """
-          Commands:
-          /exit (to exit the chatbot),
-          /reset (to reset the chat history),
-          /history (to see the chat history),
-          /delete <index> (e.g., /delete 3 or /delete -4)
-                Number of messages which are to be deleted.
-                Positive index deletes from the start,
-                negative index deletes from the end.
-          /summarize (to summarize the chat history),
-          /help
-          """
-    )
 
 
 def main():
@@ -122,27 +135,54 @@ def main():
 
     next_prompt = None
 
-
-    # pipeline = ChatbotPipeline(base_url="http://localhost:11434", model="llama3")
+    # chatbot = pipeline.Chatbot(base_url="http://localhost:11434", model="llama3")
+    # chatbot = pipeline.Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
     # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
-    # pipeline = WebRAG(
+    # chatbot = pipeline.WebRAG(
     #     base_url=BASE_URL,
     #     model=MODEL,
-    #     url=url
+    #     url=url,
+    #     openai_api_key=OPENAI_API_KEY
     # )
 
-    pipeline = PythonRAG(
+    chatbot = pipeline.PythonRAG(
         base_url=BASE_URL,
         model=MODEL,
-        path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
+        path='C:\\Users\\M106026\\Documents\\Github\\pipeline',
+        openai_api_key=OPENAI_API_KEY,
+        exclude=[
+             '**/env',
+            # '**/venv/**',
+            # '**/node_modules/**',
+            # '**/dist/**',
+            # '**/build/**',
+            # '**/target/**',
+            # '**/.git/**',
+            # '**/.idea/**',
+            # '**/.vscode/**',
+            # '**/__pycache__/**',
+            # '**/.pytest_cache/**',
+            # '**/.mypy_cache/**',
+            # '**/.tox/**',
+            # '**/.cache/**',
+            # '**/.github/**',
+            # '**/.gitlab/**',
+        ]
     )
+
+    # chatbot = pipeline.TextRAG(
+    #     base_url=BASE_URL,
+    #     model=MODEL,
+    #     openai_api_key=OPENAI_API_KEY,
+    #     path='C:\\Users\\M106026\\Documents\\policies'
+    # )
 
     try:
         while True:
             next_prompt = handle_command(
                 input("\n** Enter your message: ") if next_prompt is None else next_prompt,
-                pipeline
+                chatbot
             )
     except KeyboardInterrupt:
         print("\n\nGoodbye!\n\n")
