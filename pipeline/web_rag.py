@@ -1,9 +1,8 @@
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+"""
+This module contains the WebRAG class, which is a pipeline for a chatbot that retrieves
+documents from a website and answers questions based on the retrieved documents.
+"""
 from langchain_community.document_loaders import WebBaseLoader
-from pipeline.pipeline import Pipeline
-from pipeline.pipeline import ChatPromptTemplate
-from pipeline.pipeline import MessagesPlaceholder
 from pipeline.retrieval import Retrieval
 
 # RETRIEVAL PIPELINE
@@ -36,4 +35,3 @@ class WebRAG(Retrieval):
 
         loader = WebBaseLoader(url)
         return loader.load()
-    

@@ -105,6 +105,7 @@ def handle_command(prompt: str, chatbot: pipeline.Chatbot):
                     Positive index deletes from the start,
                     negative index deletes from the end.
             /summarize (to summarize the chat history),
+            /save (to save the chat history),
             /help
             """
         )
@@ -134,7 +135,8 @@ def main():
 
     next_prompt = None
 
-    # chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
+    # chatbot = pipeline.Chatbot(base_url="http://localhost:11434", model="llama3")
+    # chatbot = pipeline.Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
     # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
     # chatbot = pipeline.WebRAG(
@@ -144,18 +146,37 @@ def main():
     #     openai_api_key=OPENAI_API_KEY
     # )
 
-    # chatbot = PythonRAG(
-    #     base_url=BASE_URL,
-    #     model=MODEL,
-    #     path='/home/bba/0-projects/pipeline/pipeline/pipeline.py',
-    # )
-
-    chatbot = pipeline.TextRAG(
+    chatbot = pipeline.PythonRAG(
         base_url=BASE_URL,
         model=MODEL,
+        path='C:\\Users\\M106026\\Documents\\Github\\pipeline',
         openai_api_key=OPENAI_API_KEY,
-        path='C:\\Users\\M106026\\Documents\\GitHub\\FITS\\app_nuuday\\data\\policies'
+        exclude=[
+             '**/env',
+            # '**/venv/**',
+            # '**/node_modules/**',
+            # '**/dist/**',
+            # '**/build/**',
+            # '**/target/**',
+            # '**/.git/**',
+            # '**/.idea/**',
+            # '**/.vscode/**',
+            # '**/__pycache__/**',
+            # '**/.pytest_cache/**',
+            # '**/.mypy_cache/**',
+            # '**/.tox/**',
+            # '**/.cache/**',
+            # '**/.github/**',
+            # '**/.gitlab/**',
+        ]
     )
+
+    # chatbot = pipeline.TextRAG(
+    #     base_url=BASE_URL,
+    #     model=MODEL,
+    #     openai_api_key=OPENAI_API_KEY,
+    #     path='C:\\Users\\M106026\\Documents\\policies'
+    # )
 
     try:
         while True:

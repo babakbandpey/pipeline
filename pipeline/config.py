@@ -9,4 +9,3 @@ load_dotenv()
 
 # Access the variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-BASE_URL = os.getenv('BASE_URL')

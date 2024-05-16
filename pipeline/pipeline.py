@@ -34,10 +34,11 @@ class Pipeline:
         self.base_url = kwargs.get('base_url', None)
         self.model = kwargs.get('model', None)
         self.openai_api_key = kwargs.get('openai_api_key', None)
-
-        self.chat = self.setup_chat()
+        self.chat = None
+        self.setup_chat()
         self.chat_history = ChatMessageHistory()
-        self.chat_prompt = self.setup_chat_prompt()
+        self.chat_prompt = None
+        self.setup_chat_prompt()
         self.vector_store = None
         self.chain_with_message_history = None
         # This is a unique session ID for the chatbot to keep track of the conversation
@@ -52,8 +53,8 @@ class Pipeline:
             RunnableWithMessageHistory: A runnable object with message history.
         """
         return RunnableWithMessageHistory(
-            self.setup_chain(),
-            lambda session_id: self.chat_history,
+            runnable=self.setup_chain(),
+            get_session_history=lambda session_history: self.chat_history,
             input_messages_key="input",
             history_messages_key="chat_history",
         )
@@ -91,14 +92,14 @@ class Pipeline:
                     model=self.model
                 )
 
-            return chat
+            self.chat = chat
 
         except APIConnectionError as e:
             print(f"API Connection Error: {e}")
             raise e
         except Exception as e:
             print(f"Unknown exception occured: {e}")
-            return None
+            raise e
 
 
     @staticmethod
@@ -257,9 +258,26 @@ class Pipeline:
         return document_splitter.split_documents(data)
 
 
-    @staticmethod
-    def setup_chat_prompt():
+    def setup_chat_prompt(self, system_template: str = None):
         """
-        Placeholder method for setting up the chat prompt.
+        Sets up the chat prompt for the chatbot.
+        params: system_template: The system template to use.
+        returns: The initialized ChatPromptTemplate object.
         """
-        raise NotImplementedError("Chat prompt not implemented.")
+
+        if system_template is None:
+            system_template = """You are a helpful assistant.
+            Answer all questions to the best of your ability. """
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    system_template
+                ),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("user", "{input}"),
+            ]
+        )
+
+        self.chat_prompt = prompt

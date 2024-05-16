@@ -1,4 +1,5 @@
 import os
+import sys
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_community.document_loaders.generic import GenericLoader
 from pipeline.pipeline import RecursiveCharacterTextSplitter
@@ -33,6 +34,9 @@ class TextRAG(Retrieval):
     def load_documents(self):
         """Loads text documents from the filesystem."""
         try:
+            if not os.path.exists(self.path):
+                raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
+
             if os.path.isdir(self.path):
                 loader = DirectoryLoader(self.path , glob="**/*.txt", loader_cls=TextLoader)
                 self.documents = loader.load()
@@ -40,6 +44,9 @@ class TextRAG(Retrieval):
             elif os.path.isfile(self.path) and self.path.endswith(".txt"):
                 loader = TextLoader(self.path)
                 self.documents = [loader.load()]
+        except ValueError as e:
+            print(f"ValueError: {e}")
+            sys.exit(1)
         except Exception as e:
             print(f"UnicodeDecodeError: {e}")
             # read the .txt files from the directory and find non-ascii bytes
