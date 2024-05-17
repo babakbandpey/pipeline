@@ -1,4 +1,6 @@
 """
+file: pipeline/__init__.py
+author: Babak Bandpey
 The pipeline module provides a high-level interface for running a sequence of
 """
 

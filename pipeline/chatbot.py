@@ -1,4 +1,6 @@
 """
+file: pipeline/chatbot.py
+class: Chatbot
 Chatbot pipeline module.
 """
 from pipeline import Pipeline

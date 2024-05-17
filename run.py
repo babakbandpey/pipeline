@@ -1,3 +1,9 @@
+"""
+file ./run.py
+author: Babak Bandpey
+This file is made to try out the classes.
+"""
+
 import sys
 import os
 import datetime
@@ -146,37 +152,37 @@ def main():
     #     openai_api_key=OPENAI_API_KEY
     # )
 
-    chatbot = pipeline.PythonRAG(
-        base_url=BASE_URL,
-        model=MODEL,
-        path='C:\\Users\\M106026\\Documents\\Github\\pipeline',
-        openai_api_key=OPENAI_API_KEY,
-        exclude=[
-             '**/env',
-            # '**/venv/**',
-            # '**/node_modules/**',
-            # '**/dist/**',
-            # '**/build/**',
-            # '**/target/**',
-            # '**/.git/**',
-            # '**/.idea/**',
-            # '**/.vscode/**',
-            # '**/__pycache__/**',
-            # '**/.pytest_cache/**',
-            # '**/.mypy_cache/**',
-            # '**/.tox/**',
-            # '**/.cache/**',
-            # '**/.github/**',
-            # '**/.gitlab/**',
-        ]
-    )
+    # base_path = os.getcwd()
 
-    # chatbot = pipeline.TextRAG(
+    # exclude_patterns = [
+    #     "env/**/*",
+    #     "venv/**/*",
+    #     ".git/**/*",
+    #     ".idea/**/*",
+    #     ".vscode/**/*",
+    #     "**/__pycache__/**/*",
+    #     "**/.pytest_cache/**/*"
+    # ]
+
+    # # Convert to absolute paths for base_path specific directories
+    # exclude_paths = [os.path.join(base_path, pattern) for pattern in exclude_patterns]
+
+    # print("Excluded paths: ", exclude_paths)
+
+    # chatbot = pipeline.PythonRAG(
     #     base_url=BASE_URL,
     #     model=MODEL,
+    #     path=os.path.join(base_path, "pipeline"),
     #     openai_api_key=OPENAI_API_KEY,
-    #     path='C:\\Users\\M106026\\Documents\\policies'
+    #     exclude=exclude_paths
     # )
+
+    chatbot = pipeline.TextRAG(
+        base_url=BASE_URL,
+        model=MODEL,
+        openai_api_key=OPENAI_API_KEY,
+        path='C:\\Users\\M106026\\Documents\\policies'
+    )
 
     try:
         while True:

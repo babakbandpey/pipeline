@@ -1,4 +1,6 @@
 """
+file: pipeline/python_rag.py
+class: PythonRAG
 This module contains the PythonRAG class.
 The user can load Python code from a local directory or a git repository
 and set up a RAG pipeline.
@@ -56,19 +58,21 @@ class PythonRAG(Retrieval):
             if not os.path.exists(self.path):
                 raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
-            exclude = self.exclude + ["**/non-utf8-encoding.py"]
-
             loader = GenericLoader.from_filesystem(
                 path=self.path,
                 glob="**/*",
                 suffixes=[".py"],
-                exclude=exclude,
+                exclude=self.exclude,
                 parser=LanguageParser(language=Language.PYTHON, parser_threshold=500),
             )
             self.documents = loader.load()
         except ValueError as e:
             print(f"ValueError: {e}")
             sys.exit(1)
+        except FileNotFoundError as e:
+            print(f"FileNotFoundError occurred: {e}")
+        except PermissionError as e:
+            print(f"PermissionError occurred: {e}")
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
@@ -78,7 +82,5 @@ class PythonRAG(Retrieval):
         python_splitter = RecursiveCharacterTextSplitter.from_language(
             language=Language.PYTHON, chunk_size=2000, chunk_overlap=200
         )
-        print(self.documents)
         all_chunks = self.split_data(python_splitter, self.documents)
-        print(all_chunks)
         self.setup_vector_store(all_chunks)

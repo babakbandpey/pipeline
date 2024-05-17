@@ -1,4 +1,5 @@
 """
+file: pipeline/config.py
 This file contains the configuration for the project.
 """
 import os

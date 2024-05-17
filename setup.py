@@ -1,3 +1,7 @@
+"""
+file ./setup.py
+This file contains the setup configuration for the project.
+"""
 from setuptools import setup, find_packages
 
 with open('requirements.txt', encoding='utf-8') as f:
