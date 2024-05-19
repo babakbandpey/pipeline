@@ -1,4 +1,7 @@
 """
+file: pipeline/pipeline.py
+class: Pipeline
+Author: Babak Bandpey
 This class defines a pipeline for integrating Ollama with the Langchain library.
 This class is in its early stages and will be updated as the project progresses.
 Git Repo: https://github.com/babakbandpey/pipeline
@@ -56,6 +59,7 @@ class Pipeline:
             runnable=self.setup_chain(),
             get_session_history=lambda session_history: self.chat_history,
             input_messages_key="input",
+            output_messages_key="output",
             history_messages_key="chat_history",
         )
 

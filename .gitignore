@@ -3,3 +3,4 @@ env/
 **/__pycache__/
 **/chat_history*.md
 .env
+pipeline.egg-info/

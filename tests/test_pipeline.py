@@ -1,26 +1,29 @@
 """
+file: tests/test_pipeline.py
+class: TestChatbot
+author: Babak Bandpey
 This module contains the unit tests for the pipeline module.
 """
 
 import unittest
-import os
-from dotenv import load_dotenv
-from unittest.mock import patch, MagicMock, call
-from pipeline.chatbot import Chatbot
-from pipeline.text_rag import TextRAG
-from pipeline.web_rag import WebRAG
-from pipeline.python_rag import PythonRAG
-import pipeline
+from unittest.mock import patch
+from src import Chatbot
+from src import TextRAG
+from src import WebRAG
+from src import PythonRAG
+from src import OPENAI_API_KEY
 
+BASE_URL = "https://api.openai.com/v1/"
+MODEL = "gpt-4o"
 
 class TestChatbot(unittest.TestCase):
 
     def setUp(self):
-        self.chatbot = Chatbot(base_url=pipeline.BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
+        self.chatbot = Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
     def test_setup_chat_prompt(self):
-        prompt = self.chatbot.setup_chat_prompt()
-        self.assertIsNotNone(prompt)
+        self.chatbot.setup_chat_prompt(system_template="You are a happy and witty chatbot.")
+        self.assertIsNotNone(self.chatbot.chat_prompt)
 
     # Additional tests for Chatbot class can be added here
 
@@ -33,14 +36,14 @@ class TestTextRAG(unittest.TestCase):
     @patch('os.path.isdir', return_value=True)
     @patch('os.listdir', return_value=["file1.txt", "file2.txt"])
     @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data="Sample text content")
-    def test_load_documents_directory(self, mock_open, mock_listdir, mock_isdir):
+    def test_load_documents_directory(self):
         self.textrag.load_documents()
         self.assertEqual(len(self.textrag.documents), 2)
 
     @patch('os.path.isfile', return_value=True)
     @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data="Sample text content")
-    def test_load_documents_file(self, mock_open, mock_isfile):
-        self.textrag.path = "/path/to/text/file.txt"
+    def test_load_documents_file(self,):
+        self.textrag.path = "./data/test.txt"
         self.textrag.load_documents()
         self.assertEqual(len(self.textrag.documents), 1)
 
@@ -50,8 +53,8 @@ class TestWebRAG(unittest.TestCase):
 
     @patch('web_rag.WebBaseLoader')
     def setUp(self, MockWebBaseLoader):
-        self.url = "https://example.com"
-        self.webrag = WebRAG(url=self.url, base_url="https://api.example.com", model="test-model")
+        self.url = "https://dr.dk"
+        self.webrag = WebRAG(url=self.url, base_url=BASE_URL, model=MODEL)
         self.MockWebBaseLoader = MockWebBaseLoader
 
     def test_web_base_loader(self):
@@ -66,8 +69,8 @@ class TestPythonRAG(unittest.TestCase):
 
     @patch('python_rag.Repo.clone_from')
     def setUp(self, mock_clone):
-        self.git_url = "https://github.com/example/repo.git"
-        self.path = "/path/to/cloned/repo"
+        self.git_url = "https://github.com/babakbandpey/pipeline"
+        self.path = "./data/pipeline/"
         self.pythonrag = PythonRAG(git_url=self.git_url, path=self.path)
         mock_clone.assert_called_with(self.git_url, to_path=self.path)
 

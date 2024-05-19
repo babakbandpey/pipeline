@@ -1,7 +1,14 @@
+"""
+file ./run.py
+author: Babak Bandpey
+This file is made to try out the classes.
+"""
+
 import sys
 import os
 import datetime
-import pipeline
+
+from src import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
 
 # Ollama
 # BASE_URL="http://localhost:11434"
@@ -21,10 +28,10 @@ import pipeline
 # OPENAI
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
-OPENAI_API_KEY = pipeline.OPENAI_API_KEY
 
 
-def handle_command(prompt: str, chatbot: pipeline.Chatbot):
+
+def handle_command(prompt: str, chatbot: Chatbot):
     """
     Handle the command.
     :param prompt: The prompt.
@@ -135,8 +142,8 @@ def main():
 
     next_prompt = None
 
-    # chatbot = pipeline.Chatbot(base_url="http://localhost:11434", model="llama3")
-    # chatbot = pipeline.Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
+    # chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
+    # chatbot = Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
     # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
     # chatbot = pipeline.WebRAG(
@@ -146,37 +153,37 @@ def main():
     #     openai_api_key=OPENAI_API_KEY
     # )
 
-    chatbot = pipeline.PythonRAG(
-        base_url=BASE_URL,
-        model=MODEL,
-        path='C:\\Users\\M106026\\Documents\\Github\\pipeline',
-        openai_api_key=OPENAI_API_KEY,
-        exclude=[
-             '**/env',
-            # '**/venv/**',
-            # '**/node_modules/**',
-            # '**/dist/**',
-            # '**/build/**',
-            # '**/target/**',
-            # '**/.git/**',
-            # '**/.idea/**',
-            # '**/.vscode/**',
-            # '**/__pycache__/**',
-            # '**/.pytest_cache/**',
-            # '**/.mypy_cache/**',
-            # '**/.tox/**',
-            # '**/.cache/**',
-            # '**/.github/**',
-            # '**/.gitlab/**',
-        ]
-    )
+    # base_path = os.getcwd()
 
-    # chatbot = pipeline.TextRAG(
+    # exclude_patterns = [
+    #     "env/**/*",
+    #     "venv/**/*",
+    #     ".git/**/*",
+    #     ".idea/**/*",
+    #     ".vscode/**/*",
+    #     "**/__pycache__/**/*",
+    #     "**/.pytest_cache/**/*"
+    # ]
+
+    # # Convert to absolute paths for base_path specific directories
+    # exclude_paths = [os.path.join(base_path, pattern) for pattern in exclude_patterns]
+
+    # print("Excluded paths: ", exclude_paths)
+
+    # chatbot = PythonRAG(
     #     base_url=BASE_URL,
     #     model=MODEL,
+    #     path=os.path.join(base_path, "pipeline"),
     #     openai_api_key=OPENAI_API_KEY,
-    #     path='C:\\Users\\M106026\\Documents\\policies'
+    #     exclude=exclude_paths
     # )
+
+    chatbot = TextRAG(
+        base_url=BASE_URL,
+        model=MODEL,
+        openai_api_key=OPENAI_API_KEY,
+        path='C:\\Users\\M106026\\Documents\\policies'
+    )
 
     try:
         while True:

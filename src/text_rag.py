@@ -1,9 +1,15 @@
+"""
+file: pipeline/text_rag.py
+class: TextRAG
+author: Babak Bandpey
+This module contains the TextRAG class.
+"""
 import os
 import sys
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_community.document_loaders.generic import GenericLoader
-from pipeline.pipeline import RecursiveCharacterTextSplitter
-from pipeline.retrieval import Retrieval
+from src.pipeline import RecursiveCharacterTextSplitter
+from src.retrieval import Retrieval
 
 
 class TextRAG(Retrieval):

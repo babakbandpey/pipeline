@@ -1,7 +1,14 @@
+"""
+file: pipeline/retrieval.py
+class: Retrieval
+author: Babak Bandpey
+This Python code is part of a class named Retrieval.
+"""
+
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
-from pipeline import Pipeline
+from src import Pipeline
 
 class Retrieval(Pipeline):
     """
@@ -17,6 +24,14 @@ class Retrieval(Pipeline):
             system_template = """
             Answer the user's questions based on the below context.
             If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
+
+            <context>
+            {context}
+            </context>
+            """
+
+        if "{context}" not in system_template:
+            system_template = system_template + """
 
             <context>
             {context}
