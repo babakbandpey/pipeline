@@ -7,11 +7,11 @@ This module contains the unit tests for the pipeline module.
 
 import unittest
 from unittest.mock import patch
-from pipeline import Chatbot
-from pipeline import TextRAG
-from pipeline import WebRAG
-from pipeline import PythonRAG
-from pipeline import OPENAI_API_KEY
+from src import Chatbot
+from src import TextRAG
+from src import WebRAG
+from src import PythonRAG
+from src import OPENAI_API_KEY
 
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"

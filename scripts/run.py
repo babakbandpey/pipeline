@@ -7,7 +7,8 @@ This file is made to try out the classes.
 import sys
 import os
 import datetime
-import pipeline
+
+from src import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
 
 # Ollama
 # BASE_URL="http://localhost:11434"
@@ -27,10 +28,10 @@ import pipeline
 # OPENAI
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
-OPENAI_API_KEY = pipeline.OPENAI_API_KEY
 
 
-def handle_command(prompt: str, chatbot: pipeline.Chatbot):
+
+def handle_command(prompt: str, chatbot: Chatbot):
     """
     Handle the command.
     :param prompt: The prompt.
@@ -141,8 +142,8 @@ def main():
 
     next_prompt = None
 
-    # chatbot = pipeline.Chatbot(base_url="http://localhost:11434", model="llama3")
-    # chatbot = pipeline.Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
+    # chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
+    # chatbot = Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
     # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
     # chatbot = pipeline.WebRAG(
@@ -169,7 +170,7 @@ def main():
 
     # print("Excluded paths: ", exclude_paths)
 
-    # chatbot = pipeline.PythonRAG(
+    # chatbot = PythonRAG(
     #     base_url=BASE_URL,
     #     model=MODEL,
     #     path=os.path.join(base_path, "pipeline"),
@@ -177,7 +178,7 @@ def main():
     #     exclude=exclude_paths
     # )
 
-    chatbot = pipeline.TextRAG(
+    chatbot = TextRAG(
         base_url=BASE_URL,
         model=MODEL,
         openai_api_key=OPENAI_API_KEY,

@@ -8,7 +8,7 @@ This Python code is part of a class named Retrieval.
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
-from pipeline import Pipeline
+from src import Pipeline
 
 class Retrieval(Pipeline):
     """
