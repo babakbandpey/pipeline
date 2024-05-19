@@ -1,14 +1,13 @@
 Here are the updates based on the functionalities in the provided Python files:
 
-1. **New Features**: Added specific functionalities and changes.
-2. **Updated Installation and Usage Instructions**.
-3. **Enhanced descriptions for new classes or methods**.
-
-Here's the updated `README.md` content:
-
----
-
 # Chatbot and Web Retrieval Pipeline
+
+### Latest Updates
+Importing the classes should happen from src inside the project directory
+Outside of the project directory the imports can happen by importing from the pipeline package
+
+The OPENAI_API_KEY is now imported from the src package
+The OPENAI_API_KEY should be declared in the .env file
 
 ## Overview
 
@@ -74,18 +73,18 @@ if you have an OpenAI API key, save it in the .env file as OPENAI_API_KEY. Other
 Initialize and run the `Chatbot` pipeline with the specified `BASE_URL`, `MODEL`, and `OPENAI_API_KEY`:
 
 ```python
-import pipeline
+from src import OPENAI_API_KEY
+from src import Chatbot
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
-OPENAI_API_KEY = pipeline.OPENAI_API_KEY
 
-chatbot = pipeline.ChatbotPipeline(BASE_URL, MODEL, OPENAI_API_KEY)
+chatbot = Chatbot(BASE_URL, MODEL, OPENAI_API_KEY)
 print(chatbot.invoke("Hello! How are you?"))
 ```
 
 Or with Ollama:
 ```python
-chatbot = pipeline.Chatbot(base_url="http://localhost:11434", model="llama3")
+chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
 print(chatbot.invoke("Hello! How are you?"))
 ```
 
@@ -94,11 +93,11 @@ print(chatbot.invoke("Hello! How are you?"))
 Initialize and run the `WebRAG`
 
 ```python
-import pipeline
+from src import OPENAI_API_KEY
+from src import WebRAG
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
-OPENAI_API_KEY = pipeline.OPENAI_API_KEY
-chatbot = pipeline.WebRAG(
+chatbot = WebRAG(
      base_url=BASE_URL,
      model=MODEL,
      openai_api_key=OPENAI_API_KEY,
@@ -112,11 +111,15 @@ print(chatbot.invoke("What is the content of the page about?"))
 Initialize and run the `PythonRAG` pipeline:
 
 ```python
-import pipeline
+from src import OPENAI_API_KEY
+from src import PythonRAG
+BASE_URL = "https://api.openai.com/v1/"
+MODEL = "gpt-4o"
 
-chatbot = pipeline.PythonRAG(
+chatbot = PythonRAG(
         base_url=BASE_URL,
         model=MODEL,
+        openai_api_key=OPENAI_API_KEY,
         path='/path/to/python/file.py', # or a folder. Be careful with the size of the folder
         exclude=[
             '**/env/**',
@@ -145,9 +148,12 @@ print(chatbot.invoke("What is the function of the python file?"))
 Initialize and run the `TextRAG` pipeline:
 
 ```python
-import pipeline
+import src import OPENAI_API_KEY
+from src import TextRAG
+BASE_URL = "https://api.openai.com/v1/"
+MODEL = "gpt-4o"
 
-chatbot = pipeline.TextRAG(
+chatbot = TextRAG(
         base_url=BASE_URL,
         model=MODEL,
         openai_api_key=OPENAI_API_KEY,
