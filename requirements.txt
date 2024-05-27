@@ -98,7 +98,7 @@ python-dotenv==1.0.1
 python-multipart==0.0.9
 PyYAML==6.0.1
 regex==2024.5.10
-requests==2.32.0
+requests==2.32.2
 requests-oauthlib==2.0.0
 rich==13.7.1
 rsa==4.9
