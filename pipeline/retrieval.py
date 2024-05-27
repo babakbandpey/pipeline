@@ -76,7 +76,8 @@ class Retrieval(Pipeline):
         The doc_combination_chain is created using the create_stuff_documents_chain function.
         This function takes the chat history and the chat prompt as arguments.
 
-        Finally, the method returns a retrieval chain created by the create_retrieval_chain function.
+        Finally, the method returns a retrieval chain
+        created by the create_retrieval_chain function.
         This function takes the retriever_chain and the doc_combination_chain as arguments.
         The retrieval chain is the final output of the setup_chain method.
 
@@ -99,7 +100,8 @@ class Retrieval(Pipeline):
                 ("user", "{input}"),
                 (
                     "user",
-                    "Given the above conversation, generate a search query to look up to get information relevant to the conversation",
+                    "Given the above conversation, generate a search query\
+                          to look up to get information relevant to the conversation",
                 ),
             ]
         )
