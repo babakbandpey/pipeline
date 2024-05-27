@@ -1,10 +1,11 @@
 # Chatbot and Web Retrieval Pipeline
 
 ### Latest Updates
-- Importing the classes should happen from `src` inside the project directory.
-- Outside of the project directory, the imports can happen by importing from the `pipeline` package.
-- The `OPENAI_API_KEY` is now imported from the `src` package.
-- The `OPENAI_API_KEY` should be declared in the `.env` file.
+- Importing the classes should happen from src inside the project directory
+- Outside of the project directory the imports can happen by importing from the pipeline package
+
+- The `OPENAI_API_KEY` is now imported from the `src` package
+- The `OPENAI_API_KEY` should be declared in the `.env` file
 
 ## Overview
 
