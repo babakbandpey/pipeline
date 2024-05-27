@@ -1,3 +1,7 @@
+"""
+This file contains the tests for the PythonRAG class
+"""
+
 import pytest
 import os
 from pipeline import PythonRAG, OPENAI_API_KEY
@@ -13,7 +17,12 @@ def python_rag():
     Create a TextRAG instance for testing
     return: TextRAG
     """
-    return PythonRAG(base_url="https://api.openai.com/v1/", model="gpt-4o", openai_api_key=OPENAI_API_KEY, path=path)
+    return PythonRAG(
+        base_url="https://api.openai.com/v1/",
+        model="gpt-4o",
+        openai_api_key=OPENAI_API_KEY, path=path
+    )
+
 
 def test_python_rag_initialization(python_rag):
     """
@@ -24,6 +33,7 @@ def test_python_rag_initialization(python_rag):
     assert python_rag.model == "gpt-4o"
     assert python_rag.openai_api_key == OPENAI_API_KEY
     assert python_rag.path == path
+
 
 def test_python_rag_invoke(python_rag):
     """

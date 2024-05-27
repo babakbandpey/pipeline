@@ -1,5 +1,9 @@
-import pytest
+"""
+Test the TextRAG class in the pipeline module.
+"""
+
 import os
+import pytest
 from pipeline import TextRAG, OPENAI_API_KEY
 
 
@@ -13,7 +17,13 @@ def text_rag():
     Create a TextRAG instance for testing
     return: TextRAG
     """
-    return TextRAG(base_url="https://api.openai.com/v1/", model="gpt-4o", openai_api_key=OPENAI_API_KEY, path=path)
+    return TextRAG(
+        base_url="https://api.openai.com/v1/",
+        model="gpt-4o",
+        openai_api_key=OPENAI_API_KEY,
+        path=path
+    )
+
 
 def test_text_rag_initialization(text_rag):
     """
@@ -24,6 +34,7 @@ def test_text_rag_initialization(text_rag):
     assert text_rag.model == "gpt-4o"
     assert text_rag.openai_api_key == OPENAI_API_KEY
     assert text_rag.path == path
+
 
 def test_text_rag_invoke(text_rag):
     """
