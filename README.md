@@ -45,16 +45,16 @@ cd pipeline
 Create a virtual environment:
 
 ```bash
-# On Windows
-env\Scripts\activate
-
-# On Unix or MacOS
-source env/bin/activate
+python -m venv env
 ```
 
 Activate the virtual environment:
 
 ```bash
+# On Windows
+env\Scripts\activate
+
+# On Unix or MacOS
 source env/bin/activate
 ```
 
