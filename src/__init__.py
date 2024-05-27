@@ -34,8 +34,6 @@ from .text_rag import TextRAG
 from .web_rag import WebRAG
 from .python_rag import PythonRAG
 
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 __all__ = []
 
 __all__.append('OPENAI_API_KEY')

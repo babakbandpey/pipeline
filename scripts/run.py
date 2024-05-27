@@ -7,29 +7,25 @@ This file is made to try out the classes.
 import sys
 import os
 import datetime
+import argparse
 
 from src import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
 
-# Ollama
-# BASE_URL="http://localhost:11434"
-# MODEL="llama3"
-# OPENAI_API_KEY = None
+def get_args():
+    """
+    Get the arguments.
+    :return: The arguments.
+    """
 
-# Ollama
-# BASE_URL="http://localhost:11434",
-# MODEL="phi3"
-# OPENAI_API_KEY = None
-
-# LM Studio
-# BASE_URL = "http://localhost:1234/v1"
-# MODEL = None
-# OPENAI_API_KEY = None
-
-# OPENAI
-BASE_URL = "https://api.openai.com/v1/"
-MODEL = "gpt-4o"
-
-
+    parser = argparse.ArgumentParser(description="Run chatbot with different configurations.")
+    parser.add_argument("--model", type=str, required=False, help="Model to use.", default="gpt-4o")
+    parser.add_argument("--class_type", type=str, required=False, choices=["Chatbot", "TextRAG", "PythonRAG", "WebRAG"], help="Class type to use.", default="Chatbot")
+    parser.add_argument("--path", type=str, required=False, help="Local path to a file or directory.", default=None)
+    parser.add_argument("--url", type=str, required=False, help="URL to a website.", default=None)
+    parser.add_argument("--git_url", type=str, required=False, help="The url to a git repo to be used with the class_type PythonRAG", default=None)
+    parser.add_argument("--openai_api_key", type=str, required=False, default=OPENAI_API_KEY, help="OpenAI API key.")
+    parser.add_argument("--example", action="store_true" , required=False, help="Showing some examples of how to run the script", default=None)
+    return parser.parse_args()
 
 def handle_command(prompt: str, chatbot: Chatbot):
     """
@@ -132,6 +128,92 @@ def handle_command(prompt: str, chatbot: Chatbot):
     return action()
 
 
+def create_chatbot(args):
+    """
+    Create the chatbot.
+    :param args: The arguments.
+    :return: The chatbot.
+    """
+
+    if args.example:
+        print("""
+        Examples:
+        py .\\scripts\\run.py --class_type=Chatbot
+        py .\\scripts\\run.py --class_type=WebRag --url=https://greydynamics.com/organisation-gladio/
+        py .\\scripts\\run.py --class_type=WebRAG --url=https://greydynamics.com/organisation-gladio/
+        py .\\scripts\\run.py --class_type=TextRAG --path=c:\\Users\\Me\\Documents\\policies
+        """)
+        exit(0)
+
+    if args.model == "llaama3":
+        base_url = "http://localhost:11434"
+        openai_api_key = None
+    elif args.model == "phi3":
+        base_url = "http://localhost:11434"
+        openai_api_key = None
+    elif "gpt" in args.model:
+        base_url = "https://api.openai.com/v1/"
+        openai_api_key = args.openai_api_key
+    else:
+        base_url = "http://localhost:1234/v1"
+        openai_api_key = None
+
+    if args.class_type == "Chatbot":
+        return Chatbot(
+            base_url=base_url,
+            model=args.model,
+            openai_api_key=openai_api_key
+        )
+
+    if args.class_type == "TextRAG":
+        return TextRAG(
+            base_url=base_url,
+            model=args.model,
+            openai_api_key=openai_api_key,
+            path=args.path
+        )
+
+    if args.class_type == "PythonRAG":
+        # if args.path is not a directory and
+        # the args.git_url is None the exclude path is not needed
+        if not os.path.isdir(args.path) and args.git_url is None:
+            return PythonRAG(
+                base_url=base_url,
+                model=args.model,
+                path=args.path,
+                openai_api_key=openai_api_key
+            )
+
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+        exclude_patterns = [
+            "env/**/*",
+            "venv/**/*",
+            ".git/**/*",
+            ".idea/**/*",
+            ".vscode/**/*",
+            "**/__pycache__/**/*",
+            "**/.pytest_cache/**/*"
+        ]
+        exclude_paths = [os.path.join(base_path, pattern) for pattern in exclude_patterns]
+        return PythonRAG(
+            base_url=base_url,
+            model=args.model,
+            path=args.path,
+            git_url=args.git_url,
+            openai_api_key=openai_api_key,
+            exclude=exclude_paths
+        )
+
+    if args.class_type == "WebRAG":
+        return WebRAG(
+            base_url=base_url,
+            model=args.model,
+            url=args.url,
+            openai_api_key=openai_api_key
+        )
+
+
 def main():
     """
     The main function.
@@ -142,48 +224,9 @@ def main():
 
     next_prompt = None
 
-    # chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
-    # chatbot = Chatbot(base_url=BASE_URL, model=MODEL, openai_api_key=OPENAI_API_KEY)
 
-    # url = "https://python.langchain.com/v0.1/docs/use_cases/code_understanding/"
-    # chatbot = pipeline.WebRAG(
-    #     base_url=BASE_URL,
-    #     model=MODEL,
-    #     url=url,
-    #     openai_api_key=OPENAI_API_KEY
-    # )
-
-    # base_path = os.getcwd()
-
-    # exclude_patterns = [
-    #     "env/**/*",
-    #     "venv/**/*",
-    #     ".git/**/*",
-    #     ".idea/**/*",
-    #     ".vscode/**/*",
-    #     "**/__pycache__/**/*",
-    #     "**/.pytest_cache/**/*"
-    # ]
-
-    # # Convert to absolute paths for base_path specific directories
-    # exclude_paths = [os.path.join(base_path, pattern) for pattern in exclude_patterns]
-
-    # print("Excluded paths: ", exclude_paths)
-
-    # chatbot = PythonRAG(
-    #     base_url=BASE_URL,
-    #     model=MODEL,
-    #     path=os.path.join(base_path, "pipeline"),
-    #     openai_api_key=OPENAI_API_KEY,
-    #     exclude=exclude_paths
-    # )
-
-    chatbot = TextRAG(
-        base_url=BASE_URL,
-        model=MODEL,
-        openai_api_key=OPENAI_API_KEY,
-        path='C:\\Users\\M106026\\Documents\\policies'
-    )
+    args = get_args()
+    chatbot = create_chatbot(args)
 
     try:
         while True:

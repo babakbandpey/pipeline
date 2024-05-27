@@ -47,6 +47,9 @@ class PythonRAG(Retrieval):
 
     def clone_repository(self):
         """Clones the git repository to the specified path."""
+        # checking if the git_url is not None and the path is not None
+        if self.git_url is None or self.path is None:
+            raise ValueError("Both git_url and path to clone the repo to must be provided.")
         Repo.clone_from(self.git_url, to_path=self.path)
 
 
