@@ -7,7 +7,6 @@ This module contains the TextRAG class.
 import os
 import sys
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain_community.document_loaders.generic import GenericLoader
 from src.pipeline import RecursiveCharacterTextSplitter
 from src.retrieval import Retrieval
 
@@ -33,16 +32,55 @@ class TextRAG(Retrieval):
 
         self.documents = []
 
+        self.check_for_non_ascii_bytes()
         self.load_documents()
         self.split_and_store_documents()
 
 
-    def load_documents(self):
-        """Loads text documents from the filesystem."""
+    def check_for_non_ascii_bytes(self):
+        """
+        Checks for non-ASCII bytes in a text file or directory.
+        If non-ASCII bytes are found, the user is prompted to clean the file.
+        """
+
+        def detect_and_clean(file_path):
+            print(f"Checking file: {file_path} for non-ASCII bytes...")
+            non_ascii_positions = self.find_non_ascii_bytes(file_path)
+            if non_ascii_positions:
+                print(f"Non-ASCII bytes found in file: {file_path}")
+                print(non_ascii_positions)
+                answer = input("Do you want to clean the file? (y/n): ")
+                if answer.lower() == 'y':
+                    self.clean_non_ascii_bytes(file_path)
+                else:
+                    print("\n\nYou need to clean the file manaually before proceeding. Exiting.\n\n")
+                    sys.exit(1)
+
         try:
             if not os.path.exists(self.path):
                 raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
+            # if path is a directory, check all .txt files in the directory
+            if os.path.isdir(self.path):
+                for file in os.listdir(self.path):
+                    if file.endswith(".txt"):
+                        file_path = os.path.join(self.path, file)
+                        detect_and_clean(file_path)
+            else:
+                non_ascii_positions = self.find_non_ascii_bytes(self.path)
+                if non_ascii_positions:
+                    detect_and_clean(self.path)
+        except FileNotFoundError as e:
+            print(f"FileNotFoundError: {e}")
+            sys.exit(1)
+
+
+    def load_documents(self):
+        """Loads text documents from the filesystem."""
+
+        print(f"Loading document(s) from: {self.path}")
+
+        try:
             if os.path.isdir(self.path):
                 loader = DirectoryLoader(self.path , glob="**/*.txt", loader_cls=TextLoader)
                 self.documents = loader.load()
@@ -56,20 +94,14 @@ class TextRAG(Retrieval):
         except Exception as e:
             print(f"UnicodeDecodeError: {e}")
             # read the .txt files from the directory and find non-ascii bytes
-            for file in os.listdir(self.path):
-                if file.endswith(".txt"):
-                    file_path = os.path.join(self.path, file)
-                    non_ascii_positions = self.find_non_ascii_bytes(file_path)
-                    if non_ascii_positions:
-                        print(f"Non-ASCII bytes found in file: {file_path}")
-                        print(non_ascii_positions)
-                        self.clean_non_ascii_bytes(file_path)
-
             raise ValueError(f"Invalid encoding in file: {self.path}") from e
 
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
+
+        print("Splitting and storing documents in the local vector database...")
+
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
         all_chunks = self.split_data(text_splitter, self.documents)
         self.setup_vector_store(all_chunks)
