@@ -1,13 +1,10 @@
-Here are the updates based on the functionalities in the provided Python files:
-
 # Chatbot and Web Retrieval Pipeline
 
 ### Latest Updates
-Importing the classes should happen from src inside the project directory
-Outside of the project directory the imports can happen by importing from the pipeline package
-
-The OPENAI_API_KEY is now imported from the src package
-The OPENAI_API_KEY should be declared in the .env file
+- Importing the classes should happen from `src` inside the project directory.
+- Outside of the project directory, the imports can happen by importing from the `pipeline` package.
+- The `OPENAI_API_KEY` is now imported from the `src` package.
+- The `OPENAI_API_KEY` should be declared in the `.env` file.
 
 ## Overview
 
@@ -18,7 +15,6 @@ This repository contains the implementation of several classes designed to integ
 - `WebRAG`: Focuses on retrieving and processing content from specified URLs to answer queries.
 - `PythonRAG`: Handles retrieval-augmented generation (RAG) specific to Python code.
 - `TextRAG`: Manages RAG for general text-based content.
-
 
 ## Features
 
@@ -33,7 +29,7 @@ This repository contains the implementation of several classes designed to integ
 - Python 3.11+
 - Dependencies from Langchain library
 - Ollama + llama3
-- Or openai
+- Or OpenAI
 - OR LM Studio
 
 ## Installation
@@ -67,8 +63,7 @@ pip install -r requirements.txt
 
 ### General Chatbot Pipeline
 
-if you have an OpenAI API key, save it in the .env file as OPENAI_API_KEY. Otherwise, you can use Ollama and llama3 for the chatbot pipeline.
-
+If you have an OpenAI API key, save it in the `.env` file as `OPENAI_API_KEY`. Otherwise, you can use Ollama and llama3 for the chatbot pipeline.
 
 Initialize and run the `Chatbot` pipeline with the specified `BASE_URL`, `MODEL`, and `OPENAI_API_KEY`:
 
@@ -83,6 +78,7 @@ print(chatbot.invoke("Hello! How are you?"))
 ```
 
 Or with Ollama:
+
 ```python
 chatbot = Chatbot(base_url="http://localhost:11434", model="llama3")
 print(chatbot.invoke("Hello! How are you?"))
@@ -90,7 +86,7 @@ print(chatbot.invoke("Hello! How are you?"))
 
 ### Web Retrieval Pipeline
 
-Initialize and run the `WebRAG`
+Initialize and run the `WebRAG`:
 
 ```python
 from src import OPENAI_API_KEY
@@ -162,9 +158,45 @@ chatbot = TextRAG(
 print(chatbot.invoke("Summarize the text file."))
 ```
 
-## Commands and Interaction
+### Running the Script
 
-### Chatbot Commands
+You can run the `run.py` script with different configurations as follows:
+
+- To run the general chatbot:
+  ```bash
+  python run.py --class_type=Chatbot
+  ```
+
+- To run the WebRAG pipeline:
+  ```bash
+  python run.py --class_type=WebRAG --url=https://example.com
+  ```
+
+- To run the TextRAG pipeline:
+  ```bash
+  python run.py --class_type=TextRAG --path=/path/to/text/file.txt
+  ```
+
+- To run the PythonRAG pipeline with a local path:
+  ```bash
+  python run.py --class_type=PythonRAG --path=/path/to/python/file.py
+  ```
+
+- To run the PythonRAG pipeline with a git URL:
+  ```bash
+  python run.py --class_type=PythonRAG --git_url=https://github.com/example/repo.git
+  ```
+
+### Showing Examples
+
+To see example commands, use the `--example` flag:
+```bash
+python run.py --example
+```
+
+### Commands and Interaction
+
+#### Chatbot Commands
 
 - **/exit**: Exit the conversation.
 - **/reset**: Start a new conversation.
@@ -174,8 +206,7 @@ print(chatbot.invoke("Summarize the text file."))
 - **/save**: Save the conversation history to a file under the history folder.
 - **/help**: Display the list of available commands.
 
-
-### Example Session
+#### Example Session
 
 Here's an example of interacting with the chatbot:
 
@@ -194,7 +225,7 @@ Enter your message: /exit
 Goodbye!
 ```
 
-### Handling Interruptions
+#### Handling Interruptions
 
 If the chatbot session is interrupted (e.g., by pressing `Ctrl+C`), the system will catch the interruption and safely exit:
 
@@ -210,3 +241,6 @@ This project is licensed under the MIT License - see the LICENSE file for more d
 ---
 
 This `README.md` provides a comprehensive overview of how to set up and use the pipelines, along with information on how they work. Adjust the repository URL and any specific installation instructions as needed to match your project's requirements.
+```
+
+Feel free to make any additional adjustments as needed to match your project's specifics.
