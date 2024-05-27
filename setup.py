@@ -12,8 +12,8 @@ with open('README.md', encoding='utf-8') as f:
 
 setup(
     name='pipeline',
-    version='0.1.0',
-    packages=find_packages(),
+    version='0.4.0',
+    packages=find_packages(include=['pipeline', 'pipeline.*']),
     install_requires=required,
     python_requires='>=3.11',
     author='Babak Bandpey',

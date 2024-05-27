@@ -45,7 +45,11 @@ cd pipeline
 Create a virtual environment:
 
 ```bash
-python3 -m venv env
+# On Windows
+env\Scripts\activate
+
+# On Unix or MacOS
+source env/bin/activate
 ```
 
 Activate the virtual environment:
@@ -58,6 +62,12 @@ Install required packages:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Install the package in editable mode:
+
+```bash
+pip install -e .
 ```
 
 ## Usage
@@ -238,10 +248,3 @@ Goodbye!
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for more details.
-
----
-
-This `README.md` provides a comprehensive overview of how to set up and use the pipelines, along with information on how they work. Adjust the repository URL and any specific installation instructions as needed to match your project's requirements.
-```
-
-Feel free to make any additional adjustments as needed to match your project's specifics.

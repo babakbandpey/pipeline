@@ -9,7 +9,7 @@ import os
 import datetime
 import argparse
 
-from src import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
+from pipeline import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
 
 def get_args():
     """
@@ -115,7 +115,7 @@ def handle_command(prompt: str, chatbot: Chatbot):
 
     commands = {
         "/exit": exit_chat,
-        "/reset": lambda: (chatbot.clear_chat_history(), "/history")[1],
+        "/reset": lambda: (chatbot.clear_chat_history(), show_history()),
         "/history": lambda: (show_history(), None)[1],
         "/delete": lambda: (delete_message(), "/history")[1],
         "/summarize": lambda: (chatbot.summarize_messages(), "/history")[1],

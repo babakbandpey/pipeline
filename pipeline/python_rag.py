@@ -11,8 +11,8 @@ from git import Repo
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_text_splitters import Language
-from src.pipeline import RecursiveCharacterTextSplitter
-from src.retrieval import Retrieval
+from pipeline.pipeline import RecursiveCharacterTextSplitter
+from pipeline.retrieval import Retrieval
 
 
 class PythonRAG(Retrieval):
