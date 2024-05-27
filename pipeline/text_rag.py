@@ -7,8 +7,8 @@ This module contains the TextRAG class.
 import os
 import sys
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from pipeline.pipeline import RecursiveCharacterTextSplitter
-from pipeline.retrieval import Retrieval
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from .retrieval import Retrieval
 
 
 class TextRAG(Retrieval):

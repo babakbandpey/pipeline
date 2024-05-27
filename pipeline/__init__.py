@@ -5,7 +5,6 @@ Description: The pipeline module provides a high-level interface for running a c
 """
 
 from .config import OPENAI_API_KEY
-from .pipeline import Pipeline
 from .chatbot import Chatbot
 from .text_rag import TextRAG
 from .web_rag import WebRAG

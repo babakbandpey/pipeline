@@ -139,7 +139,6 @@ def create_chatbot(args):
         print("""
         Examples:
         py .\\scripts\\run.py --class_type=Chatbot
-        py .\\scripts\\run.py --class_type=WebRag --url=https://greydynamics.com/organisation-gladio/
         py .\\scripts\\run.py --class_type=WebRAG --url=https://greydynamics.com/organisation-gladio/
         py .\\scripts\\run.py --class_type=TextRAG --path=c:\\Users\\Me\\Documents\\policies
         """)
