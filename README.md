@@ -1,17 +1,20 @@
 # Chatbot and Web Retrieval Pipeline
 
 ### Latest Updates
+
 - Importing the classes should happen from pipeline inside the project directory
 - Outside of the project directory the imports can happen by importing from the pipeline package
 
-- The `OPENAI_API_KEY` is now imported from the `src` package
 - The `OPENAI_API_KEY` should be declared in the `.env` file
+- The `OPENAI_API_KEY` should be imported from the `pipeline` package
+
 
 ## Overview
 
 This repository contains the implementation of several classes designed to integrate with the Langchain library to create sophisticated chatbots and retrieval systems that handle real-time data retrieval, conversation management, and dynamic response generation.
 
 ### Key Classes
+
 - `Chatbot`: Facilitates general chatbot functionalities.
 - `WebRAG`: Focuses on retrieving and processing content from specified URLs to answer queries.
 - `PythonRAG`: Handles retrieval-augmented generation (RAG) specific to Python code.
@@ -196,29 +199,30 @@ You can run the `run.py` script with different configurations as follows:
 - To run the general chatbot:
   ```bash
   python run.py --class_type=Chatbot
-  ```
+```
 
 - To run the WebRAG pipeline:
+
   ```bash
   python run.py --class_type=WebRAG --url=https://example.com
   ```
-
 - To run the TextRAG pipeline:
+
   ```bash
   python run.py --class_type=TextRAG --path=/path/to/text/file.txt
   ```
-
 - To run the PythonRAG pipeline with a local path:
+
   ```bash
   python run.py --class_type=PythonRAG --path=/path/to/python/file.py
   ```
-
 - To run the PythonRAG pipeline with a git URL:
+
   ```bash
   python run.py --class_type=PythonRAG --git_url=https://github.com/example/repo.git
   ```
-
 - To run the PdfRAG pipeline:
+
   ```bash
   python run.py --class_type=PdfRAG --path=/path/to/pdf/file.pdf
   ```
@@ -226,6 +230,7 @@ You can run the `run.py` script with different configurations as follows:
 ### Showing Examples
 
 To see example commands, use the `--example` flag:
+
 ```bash
 python run.py --example
 ```
