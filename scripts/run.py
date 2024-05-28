@@ -9,7 +9,7 @@ import os
 import datetime
 import argparse
 
-from pipeline import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG
+from pipeline import OPENAI_API_KEY, Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG
 
 def get_args():
     """
@@ -19,7 +19,7 @@ def get_args():
 
     parser = argparse.ArgumentParser(description="Run chatbot with different configurations.")
     parser.add_argument("--model", type=str, required=False, help="Model to use.", default="gpt-4o")
-    parser.add_argument("--class_type", type=str, required=False, choices=["Chatbot", "TextRAG", "PythonRAG", "WebRAG"], help="Class type to use.", default="Chatbot")
+    parser.add_argument("--class_type", type=str, required=False, choices=["Chatbot", "TextRAG", "PythonRAG", "WebRAG", "PdfRAG"], help="Class type to use.", default="Chatbot")
     parser.add_argument("--path", type=str, required=False, help="Local path to a file or directory.", default=None)
     parser.add_argument("--url", type=str, required=False, help="URL to a website.", default=None)
     parser.add_argument("--git_url", type=str, required=False, help="The url to a git repo to be used with the class_type PythonRAG", default=None)
@@ -141,6 +141,7 @@ def create_chatbot(args):
         py .\\scripts\\run.py --class_type=Chatbot
         py .\\scripts\\run.py --class_type=WebRAG --url=https://greydynamics.com/organisation-gladio/
         py .\\scripts\\run.py --class_type=TextRAG --path=c:\\Users\\Me\\Documents\\policies
+        py .\\scripts\\run.py --class_type=PdfRAG --path=c:\\Users\\Me\\Documents\\policies
         """)
         exit(0)
 
@@ -212,6 +213,13 @@ def create_chatbot(args):
             openai_api_key=openai_api_key
         )
 
+    if args.class_type == "PdfRAG":
+        return PdfRAG(
+            base_url=base_url,
+            model=args.model,
+            path=args.path,
+            openai_api_key=openai_api_key
+        )
 
 def main():
     """

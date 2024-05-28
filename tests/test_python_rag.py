@@ -2,8 +2,8 @@
 This file contains the tests for the PythonRAG class
 """
 
-import pytest
 import os
+import pytest
 from pipeline import PythonRAG, OPENAI_API_KEY
 
 

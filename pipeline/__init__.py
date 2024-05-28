@@ -9,15 +9,16 @@ from .chatbot import Chatbot
 from .text_rag import TextRAG
 from .web_rag import WebRAG
 from .python_rag import PythonRAG
+from .pdf_rag import PdfRAG
 
 __all__ = [
-    'Pipeline',
     'Chatbot',
     'TextRAG',
     'WebRAG',
     'PythonRAG',
-    'OPENAI_API_KEY'
+    'OPENAI_API_KEY',
+    'PdfRAG'
 ]
 
-__version__ = '0.4.0'
+__version__ = '0.5.0'
 __author__ = 'Babak Bandpey <bb@cocode.dk>'

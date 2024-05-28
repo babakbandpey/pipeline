@@ -90,9 +90,10 @@ class Retrieval(Pipeline):
 
         if search_type is None:
             search_type = "mmr"
+            # search_type = "similarity"
 
         if search_kwargs is None:
-            search_kwargs = {"k": 8}
+            search_kwargs = {"k": 50, "fetch_k": 50}
 
         prompt = ChatPromptTemplate.from_messages(
             [

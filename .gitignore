@@ -4,3 +4,4 @@ env/
 **/chat_history*.md
 .env
 pipeline.egg-info/
+tests/data/*.*
