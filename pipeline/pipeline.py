@@ -134,11 +134,21 @@ class Pipeline:
         params: all_chunks: The chunks to set up the vector store with.
         returns: The initialized vector store.
         '''
-
         self.vector_store = Chroma.from_documents(
             documents=all_chunks,
             embedding=GPT4AllEmbeddings())
 
+
+    def add_texts_to_vector_store(self, all_chunks):
+        """
+        Adds the specified text to the vector store.
+        params: all_chunks: The text to add to the vector store.
+        """
+
+        if self.vector_store is None:
+            self.setup_vector_store(all_chunks)
+        else:
+            self.vector_store.add_texts(all_chunks)
 
     def invoke(self, prompt):
         """

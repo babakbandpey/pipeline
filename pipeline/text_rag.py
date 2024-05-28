@@ -4,6 +4,7 @@ class: TextRAG
 author: Babak Bandpey
 This module contains the TextRAG class.
 """
+import json
 import os
 import sys
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
@@ -34,6 +35,7 @@ class TextRAG(Retrieval):
 
         self.check_for_non_ascii_bytes()
         self.load_documents()
+        self.extract_and_add_metadata()
         self.split_and_store_documents()
 
 
@@ -87,7 +89,7 @@ class TextRAG(Retrieval):
             # if path is a file, load the file
             elif os.path.isfile(self.path) and self.path.endswith(".txt"):
                 loader = TextLoader(self.path)
-                self.documents = [loader.load()]
+                self.documents = loader.load()
         except ValueError as e:
             print(f"ValueError: {e}")
             sys.exit(1)
@@ -95,6 +97,73 @@ class TextRAG(Retrieval):
             print(f"UnicodeDecodeError: {e}")
             # read the .txt files from the directory and find non-ascii bytes
             raise ValueError(f"Invalid encoding in file: {self.path}") from e
+
+
+    def extract_and_add_metadata(self):
+        """
+        If the Documents(page_content)'s first line begins with metadata,
+        the first line contains a json object with metadata.
+        This metadata shall be extracted and added to the document's metadata.
+        """
+        print("Extracting metadata from the documents...")
+
+        for document in self.documents:
+            first_line = document.page_content.split("\n")[0]
+            if first_line.startswith("{") and first_line.endswith("}"):
+                try:
+                    metadata = self.clean_and_parse_json(first_line)
+                    print(f"Metadata found in document: {metadata}")
+                    # append the metadata to the document's metadata
+                    document.metadata.update(metadata)
+                    # remove the metadata from the page_content
+                    document.page_content = "\n".join(document.page_content.split("\n")[1:])
+                except json.JSONDecodeError as e:
+                    print(f"Line: {first_line}")
+                    print(f"JSONDecodeError: {e}")
+                    sys.exit(1)
+
+    @staticmethod
+    def clean_and_parse_json(text):
+        """
+        Cleans and parses poorly formed JSON text to a dictionary.
+
+        Parameters:
+        - text: A string with poorly formed JSON.
+
+        Returns:
+        - A dictionary representation of the JSON text or None if parsing fails.
+        """
+        try:
+            # Step 1: Replace all single quotes with double quotes
+            text = text.replace("'", '"')
+
+            # Step 2: Replace all double quotes inside strings with single quotes
+            def replace_inner_quotes(part):
+                part = part.strip()
+                if part.startswith('"') and part.endswith('"'):
+                    part = part[1:-1]
+                    part = part.replace('"', "'")
+                    part = f'"{part}"'
+                return part
+
+            parts = text.split(":")
+            for index, part in enumerate(parts):
+                if "," in part:
+                    sub_parts = part.split(",")
+                    sub_parts = [replace_inner_quotes(sub_part) for sub_part in sub_parts]
+                    parts[index] = ",".join(sub_parts)
+                else:
+                    parts[index] = replace_inner_quotes(part)
+
+            # Reconstruct the text after replacements
+            text = ":".join(parts)
+
+            # Step 3: Attempt to parse the cleaned text as JSON
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            print("Line: ", text)
+            print(f"JSONDecodeError: {e}")
+            return None
 
 
     def split_and_store_documents(self):
