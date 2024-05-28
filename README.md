@@ -1,7 +1,7 @@
 # Chatbot and Web Retrieval Pipeline
 
 ### Latest Updates
-- Importing the classes should happen from src inside the project directory
+- Importing the classes should happen from pipeline inside the project directory
 - Outside of the project directory the imports can happen by importing from the pipeline package
 
 - The `OPENAI_API_KEY` is now imported from the `src` package
@@ -16,6 +16,7 @@ This repository contains the implementation of several classes designed to integ
 - `WebRAG`: Focuses on retrieving and processing content from specified URLs to answer queries.
 - `PythonRAG`: Handles retrieval-augmented generation (RAG) specific to Python code.
 - `TextRAG`: Manages RAG for general text-based content.
+- `PdfRAG`: Manages RAG for general PDF-based content.
 
 ## Features
 
@@ -79,8 +80,8 @@ If you have an OpenAI API key, save it in the `.env` file as `OPENAI_API_KEY`. O
 Initialize and run the `Chatbot` pipeline with the specified `BASE_URL`, `MODEL`, and `OPENAI_API_KEY`:
 
 ```python
-from src import OPENAI_API_KEY
-from src import Chatbot
+from pipeline import OPENAI_API_KEY
+from pipeline import Chatbot
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
 
@@ -100,8 +101,8 @@ print(chatbot.invoke("Hello! How are you?"))
 Initialize and run the `WebRAG`:
 
 ```python
-from src import OPENAI_API_KEY
-from src import WebRAG
+from pipeline import OPENAI_API_KEY
+from pipeline import WebRAG
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
 chatbot = WebRAG(
@@ -118,8 +119,8 @@ print(chatbot.invoke("What is the content of the page about?"))
 Initialize and run the `PythonRAG` pipeline:
 
 ```python
-from src import OPENAI_API_KEY
-from src import PythonRAG
+from pipeline import OPENAI_API_KEY
+from pipeline import PythonRAG
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
 
@@ -155,8 +156,8 @@ print(chatbot.invoke("What is the function of the python file?"))
 Initialize and run the `TextRAG` pipeline:
 
 ```python
-import src import OPENAI_API_KEY
-from src import TextRAG
+from pipeline import OPENAI_API_KEY
+from pipeline import TextRAG
 BASE_URL = "https://api.openai.com/v1/"
 MODEL = "gpt-4o"
 
@@ -168,6 +169,25 @@ chatbot = TextRAG(
     )
 print(chatbot.invoke("Summarize the text file."))
 ```
+
+### PDF RAG Pipeline
+
+Initialize and run the `PdfRAG` pipeline:
+
+```python
+from pipeline import OPENAI_API_KEY
+from pipeline import PdfRAG
+BASE_URL = "https://api.openai.com/v1/"
+MODEL = "gpt-4o"
+
+chatbot = PdfRAG(
+        base_url=BASE_URL,
+        model=MODEL,
+        openai_api_key=OPENAI_API_KEY,
+        path='/path/to/pdf/file.pdf' # or a folder. Be careful with the size of the folder
+    )
+
+print(chatbot.invoke("Summarize the PDF file."))
 
 ### Running the Script
 
@@ -196,6 +216,11 @@ You can run the `run.py` script with different configurations as follows:
 - To run the PythonRAG pipeline with a git URL:
   ```bash
   python run.py --class_type=PythonRAG --git_url=https://github.com/example/repo.git
+  ```
+
+- To run the PdfRAG pipeline:
+  ```bash
+  python run.py --class_type=PdfRAG --path=/path/to/pdf/file.pdf
   ```
 
 ### Showing Examples
