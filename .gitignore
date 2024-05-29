@@ -5,3 +5,4 @@ env/
 .env
 pipeline.egg-info/
 tests/data/*.*
+diff.txt
