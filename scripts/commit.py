@@ -94,7 +94,8 @@ def main():
     commit_message = chatbot.invoke(
         "Find the git difference in the content and write a commit " +
         "message based on the provided context." +
-        " Do not include any extra information in the commit message such as code or anything else." +
+        " Do not include any extra information in the" +
+        " commit message such as code or anything else." +
         " Format the commit message as a single line."
     )
 
