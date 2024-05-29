@@ -48,7 +48,11 @@ def branch_exists(branch_name):
 def create_and_checkout_new_branch():
     """Create a new branch and switch to it."""
     while True:
-        new_branch_name = input("Enter the new branch name (or leave empty to auto-generate): ").strip()
+        new_branch_name = input(
+            "Enter the new branch name "+
+            "(or leave empty to auto-generate): "
+        ).strip()
+        
         if not new_branch_name:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             new_branch_name = f"branch_{timestamp}"
@@ -138,6 +142,7 @@ def main():
     # Step 9: Cleanup
     print("Cleaning up...")
     os.remove("diff.txt")
+
 
 if __name__ == "__main__":
     main()
