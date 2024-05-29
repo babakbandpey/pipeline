@@ -11,35 +11,39 @@ from utils import create_chatbot, get_args
 
 def run_command(command):
     """Run a shell command and return the output."""
-    result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
-    if result.returncode != 0:
-        print(f"Error running command: {command}\n{result.stderr}")
-        sys.exit(result.returncode)
-    return result.stdout.strip()
+    result = subprocess.run(command, shell=True, text=True, capture_output=True, check=False)
+    return result.stdout.strip(), result.returncode
 
 def has_changes_to_commit():
     """Check if there are any changes to commit."""
-    status = run_command("git status --porcelain")
+    status, _ = run_command("git status --porcelain")
     return bool(status)
 
 def get_current_branch_name():
     """Get the current git branch name."""
-    return run_command("git rev-parse --abbrev-ref HEAD")
+    branch_name, _ = run_command("git rev-parse --abbrev-ref HEAD")
+    return branch_name
 
 def stage_changes():
     """Stage all changes including untracked files."""
     print("Staging all changes...")
-    run_command("git add -A")
+    _, returncode = run_command("git add -A")
+    if returncode != 0:
+        print("Error staging changes.")
+        sys.exit(returncode)
 
 def generate_diff():
     """Generate diff.txt including all changes."""
     print("Generating diff.txt...")
-    run_command("git diff --staged > diff.txt")
+    _, returncode = run_command("git diff --staged > diff.txt")
+    if returncode != 0:
+        print("Error generating diff.txt.")
+        sys.exit(returncode)
 
 def branch_exists(branch_name):
     """Check if a branch already exists."""
-    existing_branches = run_command("git branch --list").split()
-    return branch_name in existing_branches
+    existing_branches, _ = run_command("git branch --list")
+    return branch_name in existing_branches.split()
 
 def create_and_checkout_new_branch():
     """Create a new branch and switch to it."""
@@ -58,8 +62,20 @@ def create_and_checkout_new_branch():
             continue
 
         print(f"Creating and checking out new branch: {new_branch_name}")
-        run_command(f"git checkout -b {new_branch_name}")
+        _, returncode = run_command(f"git checkout -b {new_branch_name}")
+        if returncode != 0:
+            print(f"Error creating and checking out new branch: {new_branch_name}.")
+            sys.exit(returncode)
         return new_branch_name
+
+def run_tests():
+    """Run pytest and abort if tests fail."""
+    print("Running tests...")
+    _, returncode = run_command("pytest")
+    if returncode != 0:
+        print("Tests failed. Aborting commit.")
+        sys.exit(returncode)
+    print("All tests passed.")
 
 def main():
     """The main function."""
@@ -84,7 +100,10 @@ def main():
     # Step 4: Generate diff.txt
     generate_diff()
 
-    # Step 5: Run chatbot to generate commit message
+    # Step 5: Run tests and abort if they fail
+    run_tests()
+
+    # Step 6: Run chatbot to generate commit message
     args = get_args()
     args.class_type = "TextRAG"
     args.path = "diff.txt"
@@ -102,17 +121,22 @@ def main():
     # replace the new line characters with a space
     commit_message = commit_message.replace("\n", " ").strip()
 
-    # Step 6: Perform git commit
+    # Step 7: Perform git commit
     print("Committing changes...")
-    run_command(f'git commit -am "{commit_message}"')
+    _, returncode = run_command(f'git commit -am "{commit_message}"')
+    if returncode != 0:
+        print("Error committing changes.")
+        sys.exit(returncode)
 
-    # Step 7: Set upstream branch and push changes
+    # Step 8: Set upstream branch and push changes
     print(f"Setting upstream branch to {branch_name} and pushing changes...")
-    run_command(f"git push --set-upstream origin {branch_name}")
+    _, returncode = run_command(f"git push --set-upstream origin {branch_name}")
+    if returncode != 0:
+        print("Error pushing changes.")
+        sys.exit(returncode)
 
-    # Step 8: Cleanup
+    # Step 9: Cleanup
     print("Cleaning up...")
-    # delete diff.txt by python
     os.remove("diff.txt")
 
 if __name__ == "__main__":

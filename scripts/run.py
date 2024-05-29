@@ -5,8 +5,8 @@ This file is made to try out the classes.
 """
 
 import datetime
-
 from utils import handle_command, get_args, create_chatbot
+
 
 def main():
     """
