@@ -88,6 +88,8 @@ def main():
     # Step 0: Check if there are any changes to commit
     if not has_changes_to_commit():
         print("No changes to commit.")
+        # push changes to remote
+        run_command(["git", "push"])
         return
 
     # Step 1: Get the current branch name
