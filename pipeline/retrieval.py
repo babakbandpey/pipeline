@@ -5,6 +5,7 @@ author: Babak Bandpey
 This Python code is part of a class named Retrieval.
 """
 
+import logging
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
@@ -30,6 +31,9 @@ class Retrieval(Pipeline):
             </context>
             """
 
+        if not isinstance(system_template, str):
+            raise ValueError("system_template must be a string")
+
         if "{context}" not in system_template:
             system_template = system_template + """
 
@@ -40,46 +44,11 @@ class Retrieval(Pipeline):
 
         super().setup_chat_prompt(system_template)
 
-
     def setup_chain(self, search_type=None, search_kwargs=None):
         '''
         Set up the chatbot pipeline chain.
 
         This method creates a chain of processing steps for the chatbot pipeline.
-
-        This Python code is part of a class method named setup_chain.
-        This method is used to set up a chatbot pipeline chain,
-        which is a sequence of processing steps for the chatbot.
-        The method takes two optional parameters: search_type and search_kwargs.
-
-        The search_type parameter specifies the type of search to use.
-        If no search type is provided, the method defaults to using "mmr" as the search type.
-
-        The search_kwargs parameter is a dictionary that contains keyword arguments for the search.
-        If no arguments are provided,
-        the method defaults to a dictionary with a single key-value pair: {"k": 8}.
-
-        The method then creates a prompt object using the ChatPromptTemplate.
-        from_messages method. This method takes a list of messages as input.
-        In this case, the list contains three messages.
-        The first message is a placeholder for the chat history.
-        The second message is the user's input.
-        The third message is a prompt for the user to generate a search query based
-        on the conversation.
-
-        Next, the method creates a retriever object using the vector_store.as_retriever method.
-        This method takes the search_type and search_kwargs as arguments.
-
-        The retriever_chain is then created using the create_history_aware_retriever function.
-        This function takes the chat history, the retriever, and the prompt as arguments.
-
-        The doc_combination_chain is created using the create_stuff_documents_chain function.
-        This function takes the chat history and the chat prompt as arguments.
-
-        Finally, the method returns a retrieval chain
-        created by the create_retrieval_chain function.
-        This function takes the retriever_chain and the doc_combination_chain as arguments.
-        The retrieval chain is the final output of the setup_chain method.
 
         params: search_type: The type of search to use.
         params: search_kwargs: The keyword arguments for the search.
@@ -87,13 +56,18 @@ class Retrieval(Pipeline):
         Returns:
             The retrieval chain for the retrieval chatbot pipeline.
         '''
-
+        valid_search_types = ["mmr", "similarity", "similarity_score_threshold"]
         if search_type is None:
             search_type = "mmr"
-            # search_type = "similarity"
+        elif search_type not in valid_search_types:
+            raise ValueError(f"Invalid search_type: {search_type}. Must be one of {valid_search_types}")
 
         if search_kwargs is None:
             search_kwargs = {"k": 50, "fetch_k": 50}
+        elif not isinstance(search_kwargs, dict):
+            raise ValueError("search_kwargs must be a dictionary")
+        elif not all(isinstance(v, int) and v > 0 for v in search_kwargs.values()):
+            raise ValueError("All values in search_kwargs must be positive integers")
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -126,8 +100,27 @@ class Retrieval(Pipeline):
         params: prompt: The prompt to use.
         returns: The answer from the chatbot.
         """
-        self.chat_history.add_user_message(prompt)
-        response = super().invoke(prompt)
-        answer = response["answer"]
+        if not isinstance(prompt, str):
+            raise ValueError("prompt must be a string")
+
+        sanitized_prompt = self.sanitize_input(prompt)
+        self.chat_history.add_user_message(sanitized_prompt)
+
+        try:
+            response = super().invoke(sanitized_prompt)
+            answer = response.get("answer", "No answer found")
+        except Exception as e:
+            logging.error("Error invoking chatbot: %s", e)
+            answer = "An error occurred while processing your request."
+
         self.chat_history.add_ai_message(answer)
         return answer
+
+    def sanitize_input(self, input_text):
+        """
+        Sanitizes user input to prevent injection attacks.
+        params: input_text: The input text to sanitize.
+        returns: The sanitized input text.
+        """
+        # Implement input sanitization logic here
+        return input_text

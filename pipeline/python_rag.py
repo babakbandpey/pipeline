@@ -7,13 +7,16 @@ and set up a RAG pipeline.
 """
 import os
 import sys
+import logging
 from git import Repo
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import LanguageParser
-from langchain_text_splitters import Language
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class PythonRAG(Retrieval):
     """
@@ -26,13 +29,11 @@ class PythonRAG(Retrieval):
         Initializes the PythonRAG object.
         params: kwargs: Dictionary containing configuration parameters.
         """
-
         super().__init__(**kwargs)
 
         self.path = kwargs.get('path')
         self.git_url = kwargs.get('git_url')
         self.exclude = kwargs.get('exclude', [])
-        # if exclude is not a list, convert it to a list
         if not isinstance(self.exclude, list):
             self.exclude = [self.exclude]
 
@@ -44,23 +45,34 @@ class PythonRAG(Retrieval):
         self.load_documents()
         self.split_and_store_documents()
 
-
     def clone_repository(self):
         """Clones the git repository to the specified path."""
-        # checking if the git_url is not None and the path is not None
-        if self.git_url is None or self.path is None:
+        if not self.git_url or not self.path:
             raise ValueError("Both git_url and path to clone the repo to must be provided.")
-        Repo.clone_from(self.git_url, to_path=self.path)
 
+        # Validate git_url
+        if not self.is_valid_git_url(self.git_url):
+            raise ValueError(f"Invalid git_url: {self.git_url}")
+
+        try:
+            Repo.clone_from(self.git_url, to_path=self.path)
+            logger.info("Repository cloned from %s to %s", self.git_url, self.path)
+        except Exception as e:
+            logger.error("Failed to clone repository: %s", e)
+            raise
+
+    @staticmethod
+    def is_valid_git_url(git_url: str) -> bool:
+        """Validates the git URL."""
+        # Add your validation logic here
+        return git_url.startswith("https://") or git_url.startswith("git@")
 
     def load_documents(self):
         """Loads Python documents from the filesystem."""
+        if not os.path.exists(self.path):
+            raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
         try:
-            # control the path and if the path does not exist, raise an error
-            if not os.path.exists(self.path):
-                raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
-
             loader = GenericLoader.from_filesystem(
                 path=self.path,
                 glob="**/*",
@@ -69,16 +81,16 @@ class PythonRAG(Retrieval):
                 parser=LanguageParser(language=Language.PYTHON, parser_threshold=500),
             )
             self.documents = loader.load()
+            logger.info("Loaded %s documents.", len(self.documents))
         except ValueError as e:
-            print(f"ValueError: {e}")
+            logger.error("ValueError: %s", e)
             sys.exit(1)
         except FileNotFoundError as e:
-            print(f"FileNotFoundError occurred: {e}")
+            logger.error("FileNotFoundError occurred: %s", e)
         except PermissionError as e:
-            print(f"PermissionError occurred: {e}")
+            logger.error("PermissionError occurred: %s", e)
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-
+            logger.error("An unexpected error occurred: %s", e)
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
