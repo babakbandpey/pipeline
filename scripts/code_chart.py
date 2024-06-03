@@ -34,7 +34,7 @@ def main():
         files = get_files()
 
     # create an output file with timestamp .md file and write the response to it
-    output_file = f"./history/code_guard_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    output_file = f"./history/code_chart_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
 
     for file in files:
 
@@ -47,20 +47,14 @@ def main():
         write_to_file(output_file, f"# Analyzing {file}...")
 
         response = chatbot.invoke(
-            f"Analyze the code in '{file}' for potential issues and security vulnerabilities. " +
-            "Be precise about the line number and the issue."
+            "Analyze the code in the content and write a description of what the code does. "
         )
 
         write_to_file(output_file, response)
 
         response = chatbot.invoke(
-            f"Suggest improvements for the code in '{file}'."
-        )
-
-        write_to_file(output_file, response)
-
-        response = chatbot.invoke(
-            f"Score the code in '{file}' on a scale of 1 to 10."
+            "Write a description of the code in the content, " +
+            "which could be used in creating a detailed flow chart ."
         )
 
         write_to_file(output_file, response)
