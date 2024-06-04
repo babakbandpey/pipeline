@@ -5,10 +5,10 @@ author: Babak Bandpey
 This module contains the WebRAG class, which is a pipeline for a chatbot that retrieves
 documents from a website and answers questions based on the retrieved documents.
 """
-from langchain_community.document_loaders import WebBaseLoader
-from .retrieval import Retrieval
 import re
 import logging
+from langchain_community.document_loaders import WebBaseLoader
+from .retrieval import Retrieval
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

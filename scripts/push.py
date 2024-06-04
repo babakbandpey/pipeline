@@ -112,19 +112,24 @@ def main():
 
     # Step 6: Run chatbot to generate commit message
     args = get_args()
-    args.class_type = "TextRAG"
+    args.type = "text"
     args.path = "diff.txt"
     chatbot = create_chatbot(args)
 
     print("Running chatbot.py to generate commit message...")
     try:
-        commit_message = chatbot.invoke(
-            "Find the git difference in the content and write a commit " +
-            "message based on the provided context." +
-            " Do not include any extra information in the" +
-            " commit message such as code or anything else." +
-            " Format the commit message as a single line."
-        )
+        while True:
+            commit_message = chatbot.invoke(
+                "Write a commit message based on the provided context." +
+                " Do not include any extra information in the" +
+                " commit message such as code or anything else." +
+                " Format the commit message as a single line."
+            )
+            if commit_message:
+                print(f"Generated commit message: {commit_message}")
+                response = input("Is the commit message okay? (y/n): ").strip().lower()
+                if response == "y":
+                    break
     except Exception as e:
         print(f"Error generating commit message: {e}")
         sys.exit(1)
@@ -134,6 +139,7 @@ def main():
 
     # Step 7: Perform git commit
     print("Committing changes...")
+    print(f"Commit message: {commit_message}")
     run_command(["git", "commit", "-am", commit_message])
 
     # Step 8: Set upstream branch and push changes

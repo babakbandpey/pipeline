@@ -14,9 +14,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import GPT4AllEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain.memory import ChatMessageHistory
 from openai import APIConnectionError
 
 # Configure logging
@@ -37,6 +37,7 @@ class Pipeline:
         self.base_url = kwargs.get('base_url')
         self.model = kwargs.get('model')
         self.openai_api_key = kwargs.get('openai_api_key')
+        self.collection_name = kwargs.get('collection_name', None)
 
         if not self.base_url:
             raise ValueError("base_url is required")
@@ -121,10 +122,25 @@ class Pipeline:
         params: all_chunks: The chunks to set up the vector store with.
         returns: The initialized vector store.
         """
-        self.vector_store = Chroma.from_documents(
-            documents=all_chunks,
-            embedding=GPT4AllEmbeddings()
+        model_name = "all-MiniLM-L6-v2.gguf2.f16.gguf"
+        gpt4all_kwargs = {'allow_download': 'True'}
+
+        embeding = GPT4AllEmbeddings(
+            model_name = model_name,
+            gpt4all_kwargs = gpt4all_kwargs
         )
+
+        if self.collection_name:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding,
+                collection_name=self.collection_name
+            )
+        else:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding
+            )
 
 
     def delte_vector_store(self):
@@ -298,3 +314,13 @@ class Pipeline:
         )
 
         self.chat_prompt = prompt
+
+
+    def sanitize_input(self, input_text):
+        """
+        Sanitizes user input to prevent injection attacks.
+        params: input_text: The input text to sanitize.
+        returns: The sanitized input text.
+        """
+        # Implement input sanitization logic here
+        return input_text

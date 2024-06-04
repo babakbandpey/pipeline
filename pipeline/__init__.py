@@ -1,5 +1,5 @@
 """
-file: src/__init__.py
+file: pipeline/__init__.py
 author: Babak Bandpey
 Description: The pipeline module provides a high-level interface for running a chatbot.
 """
@@ -10,6 +10,8 @@ from .text_rag import TextRAG
 from .web_rag import WebRAG
 from .python_rag import PythonRAG
 from .pdf_rag import PdfRAG
+from .scraper import Scraper
+from .search import Search
 
 __all__ = [
     'Chatbot',
@@ -17,7 +19,9 @@ __all__ = [
     'WebRAG',
     'PythonRAG',
     'OPENAI_API_KEY',
-    'PdfRAG'
+    'PdfRAG',
+    'Scraper',
+    'Search'
 ]
 
 __version__ = '0.5.0'

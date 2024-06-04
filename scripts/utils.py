@@ -7,7 +7,7 @@ import os
 import sys
 import argparse
 from pipeline import OPENAI_API_KEY
-from pipeline import Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG
+from pipeline import Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG, Scraper, Search
 
 
 
@@ -19,12 +19,21 @@ def get_args():
 
     parser = argparse.ArgumentParser(description="Run chatbot with different configurations.")
     parser.add_argument("--model", type=str, required=False, help="Model to use.", default="gpt-4o")
-    parser.add_argument("--class_type", type=str, required=False, choices=["Chatbot", "TextRAG", "PythonRAG", "WebRAG", "PdfRAG"], help="Class type to use.", default="Chatbot")
+    parser.add_argument("--type", type=str, required=False, choices=[
+        "chat",
+        "text",
+        "python",
+        "web",
+        "pdf",
+        "scraper",
+        'search'
+        ], help="Class type to use.", default="chat")
     parser.add_argument("--path", type=str, required=False, help="Local path to a file or directory.", default=None)
     parser.add_argument("--url", type=str, required=False, help="URL to a website.", default=None)
-    parser.add_argument("--git_url", type=str, required=False, help="The url to a git repo to be used with the class_type PythonRAG", default=None)
+    parser.add_argument("--git_url", type=str, required=False, help="The url to a git repo to be used with the type PythonRAG", default=None)
     parser.add_argument("--openai_api_key", type=str, required=False, default=OPENAI_API_KEY, help="OpenAI API key.")
     parser.add_argument("--example", action="store_true" , required=False, help="Showing some examples of how to run the script", default=None)
+    parser.add_argument("--prompt", type=str , required=False, help="The prompt", default="Say something useful about the content")
     return parser.parse_args()
 
 def handle_command(prompt: str, chatbot: object):
@@ -138,12 +147,18 @@ def create_chatbot(args):
     if args.example:
         print("""
         Examples:
-        py .\\scripts\\run.py --class_type=Chatbot
-        py .\\scripts\\run.py --class_type=WebRAG --url=https://greydynamics.com/organisation-gladio/
-        py .\\scripts\\run.py --class_type=TextRAG --path=c:\\Users\\Me\\Documents\\policies
-        py .\\scripts\\run.py --class_type=PdfRAG --path=c:\\Users\\Me\\Documents\\policies
+        python .\\scripts\\run.py --type=chat or just python .\\scripts\\run.py
+        python .\\scripts\\run.py --type=web --url=https://greydynamics.com/organisation-gladio/
+        python .\\scripts\\run.py --type=text --path=c:\\Users\\Me\\Documents\\policies
+        python .\\scripts\\run.py --type=pdf --path=c:\\Users\\Me\\Documents\\policies
+        python .\\scripts\\run.py --type=python --path=c:\\Users\\Me\\Documents\\project
+        --------------------------------------------------------------------------------
+        The following types have no memory:
+        python .\\scripts\\run.py --type=scraper --url=https://greydynamics.com/organisation-gladio/
+        python .\\scripts\\run.py --type=scraper --path=file://c:\\Users\\Me\\Documents\\project
+                The above returns JSON output
         """)
-        exit(0)
+        sys.exit(0)
 
     if args.model == "llaama3":
         base_url = "http://localhost:11434"
@@ -158,14 +173,14 @@ def create_chatbot(args):
         base_url = "http://localhost:1234/v1"
         openai_api_key = None
 
-    if args.class_type == "Chatbot":
+    if args.type == "chat":
         return Chatbot(
             base_url=base_url,
             model=args.model,
             openai_api_key=openai_api_key
         )
 
-    if args.class_type == "TextRAG":
+    if args.type == "text":
         return TextRAG(
             base_url=base_url,
             model=args.model,
@@ -173,7 +188,7 @@ def create_chatbot(args):
             path=args.path
         )
 
-    if args.class_type == "PythonRAG":
+    if args.type == "python":
         # if args.path is not a directory and
         # the args.git_url is None the exclude path is not needed
         if not os.path.isdir(args.path) and args.git_url is None:
@@ -205,7 +220,7 @@ def create_chatbot(args):
             exclude=exclude_paths
         )
 
-    if args.class_type == "WebRAG":
+    if args.type == "web":
         return WebRAG(
             base_url=base_url,
             model=args.model,
@@ -213,10 +228,44 @@ def create_chatbot(args):
             openai_api_key=openai_api_key
         )
 
-    if args.class_type == "PdfRAG":
+    if args.type == "pdf":
         return PdfRAG(
             base_url=base_url,
             model=args.model,
             path=args.path,
             openai_api_key=openai_api_key
         )
+
+    if args.type == "scraper":
+        return Scraper(
+            base_url=base_url,
+            model=args.model,
+            url=args.url,
+            openai_api_key=openai_api_key,
+            prompt=args.prompt
+        )
+
+    if args.type == "search":
+        return Search(
+            model=args.model,
+            openai_api_key=openai_api_key,
+            prompt=args.prompt,
+            base_url=base_url
+        )
+    
+
+def get_files():
+    """Get all python files in the codebase."""
+    files = []
+    for root, _, filenames in os.walk("."):
+        for filename in filenames:
+            if filename.endswith(".py") and "env" not in root and '.git' not in root:
+                files.append(os.path.join(root, filename))
+    return files
+
+
+def write_to_file(output_file, response):
+    """Write the response to a file."""
+    with open(output_file, "a", encoding='utf-8') as file:
+        file.write(response)
+        file.write("\n\n")

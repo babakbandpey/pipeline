@@ -116,11 +116,3 @@ class Retrieval(Pipeline):
         self.chat_history.add_ai_message(answer)
         return answer
 
-    def sanitize_input(self, input_text):
-        """
-        Sanitizes user input to prevent injection attacks.
-        params: input_text: The input text to sanitize.
-        returns: The sanitized input text.
-        """
-        # Implement input sanitization logic here
-        return input_text
