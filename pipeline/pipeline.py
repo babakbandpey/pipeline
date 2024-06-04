@@ -37,6 +37,7 @@ class Pipeline:
         self.base_url = kwargs.get('base_url')
         self.model = kwargs.get('model')
         self.openai_api_key = kwargs.get('openai_api_key')
+        self.collection_name = kwargs.get('collection_name', None)
 
         if not self.base_url:
             raise ValueError("base_url is required")
@@ -123,13 +124,23 @@ class Pipeline:
         """
         model_name = "all-MiniLM-L6-v2.gguf2.f16.gguf"
         gpt4all_kwargs = {'allow_download': 'True'}
-        self.vector_store = Chroma.from_documents(
-            documents=all_chunks,
-            embedding=GPT4AllEmbeddings(
-                model_name = model_name,
-                gpt4all_kwargs = gpt4all_kwargs
-            )
+
+        embeding = GPT4AllEmbeddings(
+            model_name = model_name,
+            gpt4all_kwargs = gpt4all_kwargs
         )
+
+        if self.collection_name:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding,
+                collection_name=self.collection_name
+            )
+        else:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding
+            )
 
 
     def delte_vector_store(self):
