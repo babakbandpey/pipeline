@@ -119,7 +119,7 @@ def main():
     print("Running chatbot.py to generate commit message...")
     try:
         commit_message = chatbot.invoke(
-            "Find the git difference in the content and write a commit " +
+            "Find the git difference in the content of diff.txt and write a commit " +
             "message based on the provided context." +
             " Do not include any extra information in the" +
             " commit message such as code or anything else." +
