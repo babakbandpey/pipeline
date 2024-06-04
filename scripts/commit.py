@@ -134,6 +134,7 @@ def main():
 
     # Step 7: Perform git commit
     print("Committing changes...")
+    print(f"Commit message: {commit_message}")
     run_command(["git", "commit", "-am", commit_message])
 
     # Step 8: Set upstream branch and push changes
