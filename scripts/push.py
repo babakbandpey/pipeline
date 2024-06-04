@@ -116,8 +116,6 @@ def main():
     args.path = "diff.txt"
     chatbot = create_chatbot(args)
 
-    print(chatbot.documents)
-
     print("Running chatbot.py to generate commit message...")
     try:
         while True:
