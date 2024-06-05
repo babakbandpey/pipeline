@@ -65,7 +65,10 @@ class Pipeline:
             RunnableWithMessageHistory: A runnable object with message history.
         """
         if not self.chat or not self.chat_prompt:
-            raise ValueError("Chat and chat prompt must be initialized before setting up the chain with message history")
+            raise ValueError(
+                """Chat and chat prompt must be initialized
+                before setting up the chain with message history."""
+            )
         return RunnableWithMessageHistory(
             runnable=self.setup_chain(),
             get_session_history=lambda session_history: self.chat_history,
@@ -238,8 +241,9 @@ class Pipeline:
                 MessagesPlaceholder(variable_name="chat_history"),
                 (
                     "user",
-                    "Distill the above chat messages into a single summary message. Include as many specific details as you can.",
-                ),
+                    "Distill the above chat messages into a single summary message.\
+                     Include as many specific details as you can."
+                )
             ]
         )
         summarization_chain = summarization_prompt | self.chat
@@ -317,11 +321,11 @@ class Pipeline:
         self.chat_prompt = prompt
 
 
-    def sanitize_input(self, input_text):
+    def sanitize_input(self, input_str):
         """
         Sanitizes user input to prevent injection attacks.
-        params: input_text: The input text to sanitize.
+        params: input_str: The input text to sanitize.
         returns: The sanitized input text.
         """
         # Implement input sanitization logic here
-        return input_text
+        return input_str
