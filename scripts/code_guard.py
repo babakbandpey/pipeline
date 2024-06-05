@@ -17,19 +17,10 @@ def main():
     """Main function to scan the codebase."""
 
     args = Utils.get_args()
-    args.class_type = "PythonRAG"
-
+    args.type = "python"
 
     if args.path:
-        if not os.path.exists(args.path):
-            logging.error("Error: The path '%s' does not exist.", args.path)
-            return
-
-        if os.path.isfile(args.path):
-            files = [args.path]
-        else:
-            files = [os.path.join(args.path, f) for f in os.listdir(args.path) if f.endswith(".py")]
-
+        files = Utils.get_files_from_path(args.path, ".py")
     else:
         files = Utils.get_files()
 
@@ -43,11 +34,14 @@ def main():
 
         chatbot = Utils.create_chatbot(args)
 
+        print(f"Analyzing {file}...")
+        print(chatbot.documents)
+
         logging.info("Analyzing %s...", file)
         Utils.write_to_file(output_file, f"# Analyzing {file}...")
 
         response = chatbot.invoke(
-            f"Analyze the code in '{file}' for potential issues and security vulnerabilities. " +
+            "Analyze the code in content for potential issues and security vulnerabilities. " +
             "Be precise about the line number and the issue."
         )
 
