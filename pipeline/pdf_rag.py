@@ -3,7 +3,7 @@ The user can load PDF documents from a local directory
 """
 # file: pipeline/pdf_rag.py
 import os
-from langchain_community.document_loaders import PyPDFLoader, PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
 
@@ -20,10 +20,7 @@ class PdfRAG(Retrieval):
         """
         super().__init__(**kwargs)
         self.path = kwargs.get('path')
-        self.recursive = kwargs.get('recursive', False)
-        self.load_hidden = kwargs.get('load_hidden', False)
         self.extract_images = kwargs.get('extract_images', False)
-        self.silent_errors = kwargs.get('silent_errors', False)
         self.headers = kwargs.get('headers', None)
         self.password = kwargs.get('password', None)
 
@@ -41,10 +38,19 @@ class PdfRAG(Retrieval):
             for root, _, files in os.walk(self.path):
                 for file in files:
                     if file.endswith(".pdf"):
-                        loader = PyPDFLoader(os.path.join(root, file))
+                        loader = PyPDFLoader(
+                            os.path.join(root, file),
+                            extract_images=self.extract_images,
+                            headers=self.headers,
+                        )
                         self.documents.extend(loader.load_and_split())
         else:
-            loader = PyPDFLoader(self.path)
+            loader = PyPDFLoader(
+                self.path,
+                extract_images=self.extract_images,
+                headers=self.headers,
+                password=self.password
+            )
             self.documents = loader.load_and_split()
 
         self.logger.info("Loaded %s documents.", len(self.documents))
