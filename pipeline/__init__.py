@@ -10,18 +10,16 @@ from .text_rag import TextRAG
 from .web_rag import WebRAG
 from .python_rag import PythonRAG
 from .pdf_rag import PdfRAG
-from .scraper import Scraper
-from .search import Search
+from .utils import PipelineUtils as Utils
 
 __all__ = [
+    'Utils',
     'Chatbot',
     'TextRAG',
     'WebRAG',
     'PythonRAG',
     'OPENAI_API_KEY',
     'PdfRAG',
-    'Scraper',
-    'Search'
 ]
 
 __version__ = '0.5.0'

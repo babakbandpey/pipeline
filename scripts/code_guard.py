@@ -8,7 +8,7 @@ For now it only scans the python files.
 import os
 import logging
 import datetime
-from utils import create_chatbot, get_args, write_to_file, get_files
+from pipeline import Utils
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def main():
     """Main function to scan the codebase."""
 
-    args = get_args()
+    args = Utils.get_args()
     args.class_type = "PythonRAG"
 
 
@@ -31,7 +31,7 @@ def main():
             files = [os.path.join(args.path, f) for f in os.listdir(args.path) if f.endswith(".py")]
 
     else:
-        files = get_files()
+        files = Utils.get_files()
 
     # create an output file with timestamp .md file and write the response to it
     output_file = f"./history/code_guard_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
@@ -41,29 +41,29 @@ def main():
         # get absolute path of the file
         args.path = os.path.abspath(file)
 
-        chatbot = create_chatbot(args)
+        chatbot = Utils.create_chatbot(args)
 
         logging.info("Analyzing %s...", file)
-        write_to_file(output_file, f"# Analyzing {file}...")
+        Utils.write_to_file(output_file, f"# Analyzing {file}...")
 
         response = chatbot.invoke(
             f"Analyze the code in '{file}' for potential issues and security vulnerabilities. " +
             "Be precise about the line number and the issue."
         )
 
-        write_to_file(output_file, response)
+        Utils.write_to_file(output_file, response)
 
         response = chatbot.invoke(
             f"Suggest improvements for the code in '{file}'."
         )
 
-        write_to_file(output_file, response)
+        Utils.write_to_file(output_file, response)
 
         response = chatbot.invoke(
             f"Score the code in '{file}' on a scale of 1 to 10."
         )
 
-        write_to_file(output_file, response)
+        Utils.write_to_file(output_file, response)
 
         chatbot.delte_vector_store()
         chatbot.clear_chat_history()
