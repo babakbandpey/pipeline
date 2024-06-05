@@ -27,8 +27,6 @@ class PipelineUtils():
             "python",
             "web",
             "pdf",
-            "scraper",
-            'search'
             ], help="Class type to use.", default="chat")
         parser.add_argument("--path", type=str, required=False, help="Local path to a file or directory.", default=None)
         parser.add_argument("--url", type=str, required=False, help="URL to a website.", default=None)
@@ -157,11 +155,6 @@ class PipelineUtils():
             python .\\scripts\\run.py --type=text --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=pdf --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=python --path=c:\\Users\\Me\\Documents\\project
-            --------------------------------------------------------------------------------
-            The following types have no memory:
-            python .\\scripts\\run.py --type=scraper --url=https://greydynamics.com/organisation-gladio/
-            python .\\scripts\\run.py --type=scraper --path=file://c:\\Users\\Me\\Documents\\project
-                    The above returns JSON output
             """)
             sys.exit(0)
 
@@ -240,24 +233,6 @@ class PipelineUtils():
                 path=args.path,
                 openai_api_key=openai_api_key
             )
-
-        if args.type == "scraper":
-            return Scraper(
-                base_url=base_url,
-                model=args.model,
-                url=args.url,
-                openai_api_key=openai_api_key,
-                prompt=args.prompt
-            )
-
-        if args.type == "search":
-            return Search(
-                model=args.model,
-                openai_api_key=openai_api_key,
-                prompt=args.prompt,
-                base_url=base_url
-            )
-
 
     @staticmethod
     def get_files():

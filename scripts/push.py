@@ -116,8 +116,6 @@ def main():
     args.path = "diff.txt"
     chatbot = Utils.create_chatbot(args)
 
-    print(chatbot.documents)
-
     security_check = chatbot.invoke(
         "Confirm that the changes does not contain any sensitive information."
     )
@@ -183,6 +181,9 @@ def main():
                         commit_message_file.write(commit_message)
 
                     break
+    except KeyboardInterrupt:
+        print("Aborting commit.")
+        sys.exit(1)
     except ValueError as e:
         print(f"Error generating commit message: {e}")
         sys.exit(1)
