@@ -6,8 +6,12 @@ import datetime
 import os
 import sys
 import argparse
-from pipeline import OPENAI_API_KEY
-from pipeline import Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG
+from .config import OPENAI_API_KEY
+from .chatbot import Chatbot
+from .text_rag import TextRAG
+from .python_rag import PythonRAG
+from .web_rag import WebRAG
+from .pdf_rag import PdfRAG
 
 class PipelineUtils():
     """ Utility class for the pipeline. """
@@ -19,21 +23,69 @@ class PipelineUtils():
         :return: The arguments.
         """
 
-        parser = argparse.ArgumentParser(description="Run chatbot with different configurations.")
-        parser.add_argument("--model", type=str, required=False, help="Model to use.", default="gpt-4o")
-        parser.add_argument("--type", type=str, required=False, choices=[
+        parser = argparse.ArgumentParser(
+            description="Run chatbot with different configurations."
+        )
+
+        parser.add_argument(
+            "--model",
+            type=str,
+            required=False,
+            help="Model to use.",
+            default="gpt-4o"
+        )
+
+        parser.add_argument(
+            "--type",
+            type=str,
+            required=False,
+            choices=[
             "chat",
             "text",
             "python",
             "web",
             "pdf",
-            ], help="Class type to use.", default="chat")
-        parser.add_argument("--path", type=str, required=False, help="Local path to a file or directory.", default=None)
-        parser.add_argument("--url", type=str, required=False, help="URL to a website.", default=None)
-        parser.add_argument("--git_url", type=str, required=False, help="The url to a git repo to be used with the type PythonRAG", default=None)
-        parser.add_argument("--openai_api_key", type=str, required=False, default=OPENAI_API_KEY, help="OpenAI API key.")
-        parser.add_argument("--example", action="store_true" , required=False, help="Showing some examples of how to run the script", default=None)
-        parser.add_argument("--prompt", type=str , required=False, help="The prompt", default="Say something useful about the content")
+            ],
+            help="Class type to use.",
+            default="chat"
+        )
+
+        parser.add_argument(
+            "--path",
+            type=str,
+            required=False,
+            help="Local path to a file or directory.",
+            default=None
+        )
+
+        parser.add_argument(
+            "--url",
+            type=str,
+            required=False,
+            help="URL to a website.",
+            default=None
+        )
+
+        parser.add_argument("--git_url",
+			type=str,
+			required=False,
+			help="The url to a git repo to be used with the type PythonRAG",
+			default=None)
+        parser.add_argument("--openai_api_key",
+			type=str,
+			required=False,
+			default=OPENAI_API_KEY,
+			help="OpenAI API key.")
+        parser.add_argument("--example",
+			action="store_true" ,
+			required=False,
+			help="Showing some examples of how to run the script",
+			default=None)
+        parser.add_argument("--prompt",
+			type=str ,
+			required=False,
+			help="The prompt",
+			default="Say something useful about the content")
         return parser.parse_args()
 
 
@@ -233,6 +285,8 @@ class PipelineUtils():
                 path=args.path,
                 openai_api_key=openai_api_key
             )
+
+        return None
 
     @staticmethod
     def get_files():

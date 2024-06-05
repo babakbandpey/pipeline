@@ -6,16 +6,15 @@ This module contains the WebRAG class, which is a pipeline for a chatbot that re
 documents from a website and answers questions based on the retrieved documents.
 """
 import re
-import logging
 from langchain_community.document_loaders import WebBaseLoader
 from .retrieval import Retrieval
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class WebRAG(Retrieval):
-    """Pipeline for a chatbot that retrieves documents from a website and answers questions based on the retrieved documents."""
+    """
+    Pipeline for a chatbot that retrieves documents from a website and
+    answers questions based on the retrieved documents.
+    """
 
     def __init__(self, **kwargs):
         """
@@ -34,7 +33,7 @@ class WebRAG(Retrieval):
             all_chunks = self.split_data(text_splitter, document)
             self.setup_vector_store(all_chunks)
         except Exception as e:
-            logger.error("Error initializing WebRAG: %s", e)
+            self.logger.error("Error initializing WebRAG: %s", e)
             raise
 
     @staticmethod
@@ -68,5 +67,5 @@ class WebRAG(Retrieval):
             loader = WebBaseLoader(url)
             return loader.load()
         except Exception as e:
-            logger.error("Error loading data from URL %s: %s", url=url, e=e)
+            self.logger.error("Error loading data from URL %s: %s", url=url, e=e)
             raise

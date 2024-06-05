@@ -5,7 +5,8 @@ author: Babak Bandpey
 This Python code is part of a class named Retrieval.
 """
 
-import logging
+import sys
+from abc import abstractmethod
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
@@ -43,6 +44,7 @@ class Retrieval(Pipeline):
             """
 
         super().setup_chat_prompt(system_template)
+
 
     def setup_chain(self, search_type=None, search_kwargs=None):
         '''
@@ -94,6 +96,29 @@ class Retrieval(Pipeline):
             doc_combination_chain
         )
 
+
+    def load_documents(self):
+        """Loads Python documents from the filesystem."""
+        try:
+            self._load_documents()
+        except UnicodeDecodeError as e:
+            self.logger.error("UnicodeDecodeError occurred: %s", e)
+        except ValueError as e:
+            self.logger.error("ValueError: %s", e)
+            sys.exit(1)
+        except FileNotFoundError as e:
+            self.logger.error("FileNotFoundError occurred: %s", e)
+        except PermissionError as e:
+            self.logger.error("PermissionError occurred: %s", e)
+        except Exception as e:
+            self.logger.error("An unexpected error occurred: %s", e)
+
+
+    @abstractmethod
+    def _load_documents(self):
+        """Loads documents from the filesystem."""
+
+
     def invoke(self, prompt):
         """
         Invokes the chatbot with the specified query.
@@ -110,9 +135,8 @@ class Retrieval(Pipeline):
             response = super().invoke(sanitized_prompt)
             answer = response.get("answer", "No answer found")
         except Exception as e:
-            logging.error("Error invoking chatbot: %s", e)
+            self.logger.error("Error invoking chatbot: %s", e)
             answer = "An error occurred while processing your request."
 
         self.chat_history.add_ai_message(answer)
         return answer
-

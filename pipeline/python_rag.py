@@ -6,17 +6,11 @@ The user can load Python code from a local directory or a git repository
 and set up a RAG pipeline.
 """
 import os
-import sys
-import logging
 from git import Repo
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class PythonRAG(Retrieval):
     """
@@ -56,9 +50,9 @@ class PythonRAG(Retrieval):
 
         try:
             Repo.clone_from(self.git_url, to_path=self.path)
-            logger.info("Repository cloned from %s to %s", self.git_url, self.path)
+            self.logger.info("Repository cloned from %s to %s", self.git_url, self.path)
         except Exception as e:
-            logger.error("Failed to clone repository: %s", e)
+            self.logger.error("Failed to clone repository: %s", e)
             raise
 
     @staticmethod
@@ -67,30 +61,22 @@ class PythonRAG(Retrieval):
         # Add your validation logic here
         return git_url.startswith("https://") or git_url.startswith("git@")
 
-    def load_documents(self):
+
+    def _load_documents(self):
         """Loads Python documents from the filesystem."""
         if not os.path.exists(self.path):
             raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
-        try:
-            loader = GenericLoader.from_filesystem(
+        loader = GenericLoader.from_filesystem(
                 path=self.path,
                 glob="**/*",
                 suffixes=[".py"],
                 exclude=self.exclude,
                 parser=LanguageParser(language=Language.PYTHON, parser_threshold=500),
             )
-            self.documents = loader.load()
-            logger.info("Loaded %s documents.", len(self.documents))
-        except ValueError as e:
-            logger.error("ValueError: %s", e)
-            sys.exit(1)
-        except FileNotFoundError as e:
-            logger.error("FileNotFoundError occurred: %s", e)
-        except PermissionError as e:
-            logger.error("PermissionError occurred: %s", e)
-        except Exception as e:
-            logger.error("An unexpected error occurred: %s", e)
+        self.documents = loader.load()
+        self.logger.info("Loaded %s documents.", len(self.documents))
+
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
