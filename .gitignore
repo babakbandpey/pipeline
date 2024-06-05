@@ -6,3 +6,4 @@ env/
 pipeline.egg-info/
 tests/data/*.*
 diff.txt
+commit_message.txt
