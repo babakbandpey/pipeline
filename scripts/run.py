@@ -5,8 +5,7 @@ This file is made to try out the classes.
 """
 
 import datetime
-from utils import handle_command, get_args, create_chatbot
-
+from pipeline import Utils
 
 def main():
     """
@@ -18,13 +17,12 @@ def main():
 
     next_prompt = None
 
-
-    args = get_args()
-    chatbot = create_chatbot(args)
+    args = Utils.get_args()
+    chatbot = Utils.create_chatbot(args)
 
     try:
         while True:
-            next_prompt = handle_command(
+            next_prompt = Utils.handle_command(
                 input("\n** Enter your message: ") if next_prompt is None else next_prompt,
                 chatbot
             )

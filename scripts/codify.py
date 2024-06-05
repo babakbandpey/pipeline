@@ -3,7 +3,7 @@ This script is a simple AI Agent which will codify a piece text into Policies an
 """
 
 import json
-from utils import handle_command, get_args, create_chatbot
+from pipeline import Utils
 
 def process_answer(answer, chatbot):
     """
@@ -48,8 +48,8 @@ def main():
     Main function
     """
     try:
-        args = get_args()
-        chatbot = create_chatbot(args)
+        args = Utils.get_args()
+        chatbot = Utils.create_chatbot(args)
 
         answer = chatbot.invoke(
             "Which subjects are covered in the content?" +
@@ -61,7 +61,7 @@ def main():
 
         next_prompt = None
         while True:
-            next_prompt = handle_command(
+            next_prompt = Utils.handle_command(
                 input("\n** Enter your message: ") if next_prompt is None else next_prompt,
                 chatbot
             )
