@@ -193,26 +193,30 @@ def create_commit_message(chatbot):
                 Format the commit message as JSON.
                 The JSON should contain the following keys:
                 'title': 'The title of the commit message',
-                'description': 'The description of the commit message',
+                'description': ['The description of the commit message as a list of sentences.'],
                 'type': 'The type of the commit message (e.g. feature, bugfix, etc.)',
                 """
             )
 
             if commit_message:
+                commit_message_json = Utils.parse_json_response(commit_message)
+                if commit_message_json is None:
+                    print("Invalid JSON format. Truing again... CTRL+C to abort.")
+                    continue
+                commit_message = commit_message_json.get('title', 'No Title!')
+                commit_message += "\n\nDescription:\n"
+                description = commit_message_json.get('description', ['No Description!'])
+                for i, sentence in enumerate(description, start=1):
+                    commit_message += f"{i}. {sentence.strip()}.\n"
+                commit_message += f"\nType: {commit_message_json.get('type', 'No Type!')}"
+
                 print(f"Generated commit message: {commit_message}")
                 response = input("Is the commit message okay? (y/n): ").strip().lower()
                 if response == "y":
-
-                    commit_message = commit_message.replace("```json", "").replace("```", "")
-                    commit_message_json = json.loads(commit_message)
-                    commit_message = commit_message_json['title']
-                    commit_message += commit_message_json['description']
-                    commit_message += f"Type: {commit_message_json['type']}"
-
                     with open("commit_message.txt", "w", encoding='utf-8') as commit_message_file:
                         commit_message_file.write(commit_message)
-
                     break
+
         return True
 
     except KeyboardInterrupt:
@@ -224,6 +228,27 @@ def create_commit_message(chatbot):
 
     return False
 
+def cleanup():
+    """
+    Cleanup temporary files.
+    return: True if cleanup is successful, False otherwise.
+    """
+
+    try:
+        os.remove("diff.txt")
+    except OSError as e:
+        print(f"Error removing diff.txt: {e}")
+        return False
+
+    try:
+        os.remove("commit_message.txt")
+    except OSError as e:
+        print(f"Error removing commit_message.txt: {e}")
+        return False
+
+    return True
+
+
 def main():
     """The main function."""
 
@@ -232,7 +257,7 @@ def main():
         print("No changes to commit.")
         # push changes to remote
         run_command(["git", "push"])
-        return
+        sys.exit(0)
 
     # Step 1: Get the current branch name
     branch_name = get_current_branch_name()
@@ -252,47 +277,36 @@ def main():
     # Step 5: Run tests and abort if they fail
     run_tests()
 
-    # Step 6: Run chatbot to generate commit message
+    # Step 6: Create a chatbot to perform checks before committing the changes
     args = Utils.get_args()
     args.type = "text"
     args.path = "diff.txt"
     chatbot = Utils.create_chatbot(args)
 
-    if not run_checks(chatbot):
+    # Step 7: Run checks before committing the changes
+    if not run_checks(chatbot) or not create_commit_message(chatbot):
         print("Aborting commit.")
         unstage_changes()
-        sys.exit(1)
-
-
-    if not create_commit_message(chatbot):
-        print("Aborting commit.")
-        unstage_changes()
-        sys.exit(1)
+        cleanup()
+        sys.exit(0)
 
     response = input("Do you want to continue with the commit? (y/n): ").strip().lower()
     if response == "n":
         print("Aborting commit.")
-        sys.exit(1)
+        sys.exit(0)
 
-    # Step 7: Perform git commit
+    # Step 8: Perform git commit
     print("Committing changes...")
     run_command(["git", "commit", "-aF", "commit_message.txt"])
 
-    # Step 8: Set upstream branch and push changes
+    # Step 9: Cleanup
+    print("Cleaning up...")
+    cleanup()
+
+    # Step 10: Set upstream branch and push changes
     print(f"Setting upstream branch to {branch_name} and pushing changes...")
     run_command(["git", "push", "--set-upstream", "origin", branch_name])
 
-    # Step 9: Cleanup
-    print("Cleaning up...")
-    try:
-        os.remove("diff.txt")
-    except OSError as e:
-        print(f"Error removing diff.txt: {e}")
-
-    try:
-        os.remove("commit_message.txt")
-    except OSError as e:
-        print(f"Error removing commit_message.txt: {e}")
 
 if __name__ == "__main__":
     main()

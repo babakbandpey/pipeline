@@ -5,6 +5,8 @@ Shared utility functions.
 import datetime
 import os
 import sys
+import re
+import json
 import argparse
 import logging
 from .config import OPENAI_API_KEY
@@ -318,3 +320,20 @@ class PipelineUtils():
             return [path]
         else:
             return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(file_extension)]
+
+
+    @staticmethod
+    def parse_json_response(response):
+        """Parse the JSON response."""
+        try:
+            response = re.sub(r'```json|```', '', response)
+            response_json = json.loads(response)
+
+            # controlling if the response_json is a json object
+            if isinstance(response_json, dict):
+                return response_json
+            else:
+                return None
+        except json.JSONDecodeError:
+            logging.error("Error: The response is not a valid JSON.")
+            return None
