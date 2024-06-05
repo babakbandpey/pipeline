@@ -17,19 +17,10 @@ def main():
     """Main function to scan the codebase."""
 
     args = Utils.get_args()
-    args.class_type = "PythonRAG"
-
+    args.type = "python"
 
     if args.path:
-        if not os.path.exists(args.path):
-            logging.error("Error: The path '%s' does not exist.", args.path)
-            return
-
-        if os.path.isfile(args.path):
-            files = [args.path]
-        else:
-            files = [os.path.join(args.path, f) for f in os.listdir(args.path) if f.endswith(".py")]
-
+        files = Utils.get_files_from_path(args.path, ".py")
     else:
         files = Utils.get_files()
 

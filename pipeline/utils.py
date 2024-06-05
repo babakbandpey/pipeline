@@ -5,7 +5,10 @@ Shared utility functions.
 import datetime
 import os
 import sys
+import re
+import json
 import argparse
+import logging
 from .config import OPENAI_API_KEY
 from .chatbot import Chatbot
 from .text_rag import TextRAG
@@ -305,3 +308,32 @@ class PipelineUtils():
         with open(output_file, "a", encoding='utf-8') as file:
             file.write(response)
             file.write("\n\n")
+
+    @staticmethod
+    def get_files_from_path(path, file_extension=".py"):
+        """Get a list of Python files from the given path."""
+        if not os.path.exists(path):
+            logging.error("Error: The path '%s' does not exist.", path)
+            return []
+
+        if os.path.isfile(path):
+            return [path]
+        else:
+            return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(file_extension)]
+
+
+    @staticmethod
+    def parse_json_response(response):
+        """Parse the JSON response."""
+        try:
+            response = re.sub(r'```json|```', '', response)
+            response_json = json.loads(response)
+
+            # controlling if the response_json is a json object
+            if isinstance(response_json, dict):
+                return response_json
+            else:
+                return None
+        except json.JSONDecodeError:
+            logging.error("Error: The response is not a valid JSON.")
+            return None
