@@ -3,15 +3,9 @@ The user can load PDF documents from a local directory
 """
 # file: pipeline/pdf_rag.py
 import os
-import sys
-import logging
 from langchain_community.document_loaders import PyPDFLoader, PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class PdfRAG(Retrieval):
     """
@@ -37,40 +31,24 @@ class PdfRAG(Retrieval):
         self.load_documents()
         self.split_and_store_documents()
 
-    def load_documents(self):
-        """Loads PDF documents from the filesystem."""
-        try:
-            if not self.path or not os.path.exists(self.path):
-                raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
-            if os.path.isdir(self.path):
-                loader = PyPDFDirectoryLoader(
-                    path=self.path,
-                    recursive=self.recursive,
-                    load_hidden=self.load_hidden,
-                    extract_images=self.extract_images,
-                    silent_errors=self.silent_errors
-                )
-            else:
-                loader = PyPDFLoader(
-                    self.path,
-                    extract_images=self.extract_images,
-                    headers=self.headers,
-                    password=self.password
-                )
+    def _load_documents(self):
+        """Loads Python documents from the filesystem."""
+        if not self.path or not os.path.exists(self.path):
+            raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
+        if os.path.isdir(self.path):
+            for root, _, files in os.walk(self.path):
+                for file in files:
+                    if file.endswith(".pdf"):
+                        loader = PyPDFLoader(os.path.join(root, file))
+                        self.documents.extend(loader.load_and_split())
+        else:
+            loader = PyPDFLoader(self.path)
             self.documents = loader.load_and_split()
 
-            logger.info("Loaded %s documents.", len(self.documents))
-            logger.debug(self.documents)
-
-        except ValueError as e:
-            logger.error("ValueError: %s", e)
-            sys.exit(1)
-        except FileNotFoundError as e:
-            logger.error("FileNotFoundError occurred: %s", e)
-        except PermissionError as e:
-            logger.error("PermissionError occurred: %s", e)
+        self.logger.info("Loaded %s documents.", len(self.documents))
+        self.logger.debug(self.documents)
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
@@ -79,4 +57,4 @@ class PdfRAG(Retrieval):
             all_chunks = self.split_data(pdf_splitter, self.documents)
             self.setup_vector_store(all_chunks)
         except Exception as e:
-            logger.error("An error occurred while splitting and storing documents: %s", e)
+            self.logger.error("An error occurred while splitting and storing documents: %s", e)

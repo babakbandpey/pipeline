@@ -19,10 +19,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 class Pipeline:
     """
     Represents a pipeline for the chatbot.
@@ -55,6 +51,11 @@ class Pipeline:
 
         self.setup_chat()
         self.setup_chat_prompt()
+
+        # Configure logging
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
+
 
     def setup_chain_with_message_history(self):
         """
@@ -103,10 +104,10 @@ class Pipeline:
                 )
 
         except APIConnectionError as e:
-            logger.error("API Connection Error: %s", e)
+            self.logger.error("API Connection Error: %s", e)
             raise e
         except Exception as e:
-            logger.error("Unknown exception occurred: %s", e)
+            self.logger.error("Unknown exception occurred: %s", e)
             raise e
 
     def setup_chain(self):
@@ -150,7 +151,7 @@ class Pipeline:
         if self.vector_store:
             self.vector_store.delete_collection()
         else:
-            logger.warning("Vector store is not initialized")
+            self.logger.warning("Vector store is not initialized")
 
 
     def add_texts_to_vector_store(self, all_chunks):
@@ -185,7 +186,7 @@ class Pipeline:
         if self.chat_history:
             self.chat_history.clear()
         else:
-            logger.warning("Chat history is not initialized")
+            self.logger.warning("Chat history is not initialized")
 
     def modify_chat_history(self, num_messages: int):
         """
@@ -197,7 +198,7 @@ class Pipeline:
         returns: True if the chat history is modified, False otherwise.
         """
         if num_messages is None:
-            logger.warning("Chat history is not initialized")
+            self.logger.warning("Chat history is not initialized")
             return False
 
         messages = self.chat_history.messages
@@ -225,7 +226,7 @@ class Pipeline:
         returns: True if the chat history is summarized, False otherwise.
         """
         if not self.chat_history:
-            logger.warning("Chat history is not initialized")
+            self.logger.warning("Chat history is not initialized")
             return False
 
         stored_messages = self.chat_history.messages
