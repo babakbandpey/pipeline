@@ -198,33 +198,33 @@ You can run the `run.py` script with different configurations as follows:
 
 - To run the general chatbot:
   ```bash
-  python run.py --class_type=Chatbot
+  python ./scripts/run.py --type Chat
 ```
 
 - To run the WebRAG pipeline:
 
   ```bash
-  python run.py --class_type=WebRAG --url=https://example.com
+  python ./scripts/run.py --type web --url https://example.com
   ```
 - To run the TextRAG pipeline:
 
   ```bash
-  python run.py --class_type=TextRAG --path=/path/to/text/file.txt
+  python ./scripts/run.py --type=text --path /path/to/text/file.txt
   ```
 - To run the PythonRAG pipeline with a local path:
 
   ```bash
-  python run.py --class_type=PythonRAG --path=/path/to/python/file.py
+  python ./scripts/run.py --type python --path /path/to/python/file.py
   ```
 - To run the PythonRAG pipeline with a git URL:
 
   ```bash
-  python run.py --class_type=PythonRAG --git_url=https://github.com/example/repo.git
+  python ./scripts/run.py --type python --git https://github.com/example/repo.git
   ```
 - To run the PdfRAG pipeline:
 
   ```bash
-  python run.py --class_type=PdfRAG --path=/path/to/pdf/file.pdf
+  python ./scripts/run.py --type pdf --path /path/to/pdf/file.pdf
   ```
 
 ### Showing Examples
