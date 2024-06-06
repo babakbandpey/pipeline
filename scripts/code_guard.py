@@ -59,7 +59,7 @@ def main():
 
         Utils.write_to_file(output_file, response)
 
-        chatbot.delte_vector_store()
+        chatbot.delete_collection()
         chatbot.clear_chat_history()
 
 
