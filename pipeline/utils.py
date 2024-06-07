@@ -319,11 +319,26 @@ class PipelineUtils():
 
 
     @staticmethod
+    def parse_json(response):
+        """
+        Parse the JSON response and return the JSON object.
+        :param response: The response.
+        :return: The JSON object.
+        """
+        response = re.sub(r'```json|```', '', response)
+        response_json = json.loads(response)
+        return response_json
+
+
+    @staticmethod
     def parse_json_response(response):
-        """Parse the JSON response."""
+        """
+        Parse the JSON response and return the JSON object.
+        :param response: The response.
+        :return: The JSON object.
+        """
         try:
-            response = re.sub(r'```json|```', '', response)
-            response_json = json.loads(response)
+            response_json = PipelineUtils.parse_json(response)
 
             # controlling if the response_json is a json object
             if isinstance(response_json, dict):
@@ -333,3 +348,26 @@ class PipelineUtils():
         except json.JSONDecodeError:
             logging.error("Error: The response is not a valid JSON.")
             return None
+
+    @staticmethod
+    def process_json_response(response):
+        """
+        Process the JSON response and return a markdown list.
+        :param response: The response.
+        :return: The markdown list.
+        """
+        try:
+            response_json = PipelineUtils.parse_json_response(response)
+
+            # Create a markdown list from the JSON data
+            markdown_list = ""
+            for key, items in response_json.items():
+                markdown_list += f"**{key}**\n"
+                for item in items:
+                    markdown_list += f"\t- {item}\n"
+
+            return markdown_list
+
+        except json.JSONDecodeError:
+            # If the response is not JSON, return the original text
+            return response
