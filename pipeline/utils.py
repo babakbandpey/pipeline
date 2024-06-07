@@ -226,34 +226,44 @@ class PipelineUtils():
             base_url = "http://localhost:1234/v1"
             openai_api_key = None
 
+        if hasattr(args, 'collection_name') and args.collection_name is not None:
+            collection_name = args.collection_name
+        else:
+            collection_name = None
+
+        if hasattr(args, 'git_url') and args.git_url is not None:
+            git_url = args.git_url
+        else:
+            git_url = None
+
+        if hasattr(args, 'path') and args.path is not None:
+            path = args.path
+        else:
+            path = None
+
+        if hasattr(args, 'url') and args.url is not None:
+            url = args.url
+        else:
+            url = None
+
+        kwargs = {
+            "base_url": base_url,
+            "model": args.model,
+            "openai_api_key": openai_api_key,
+            "collection_name": collection_name,
+            "git_url": git_url,
+            "path": path,
+            "url": url
+        }
+
         if args.type == "chat":
-            return Chatbot(
-                base_url=base_url,
-                model=args.model,
-                openai_api_key=openai_api_key
-            )
+            return Chatbot(**kwargs)
 
         if args.type == "text":
-            return TextRAG(
-                base_url=base_url,
-                model=args.model,
-                openai_api_key=openai_api_key,
-                path=args.path
-            )
+            return TextRAG(**kwargs)
 
         if args.type == "python":
-            # if args.path is not a directory and
-            # the args.git_url is None the exclude path is not needed
-            if not os.path.isdir(args.path) and args.git_url is None:
-                return PythonRAG(
-                    base_url=base_url,
-                    model=args.model,
-                    path=args.path,
-                    openai_api_key=openai_api_key
-                )
-
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-
             exclude_patterns = [
                 "env/**/*",
                 "venv/**/*",
@@ -264,30 +274,16 @@ class PipelineUtils():
                 "**/.pytest_cache/**/*"
             ]
             exclude_paths = [os.path.join(base_path, pattern) for pattern in exclude_patterns]
-            return PythonRAG(
-                base_url=base_url,
-                model=args.model,
-                path=args.path,
-                git_url=args.git_url,
-                openai_api_key=openai_api_key,
-                exclude=exclude_paths
-            )
+
+            kwargs["exclude"] = exclude_paths
+
+            return PythonRAG(**kwargs)
 
         if args.type == "web":
-            return WebRAG(
-                base_url=base_url,
-                model=args.model,
-                url=args.url,
-                openai_api_key=openai_api_key
-            )
+            return WebRAG(**kwargs)
 
         if args.type == "pdf":
-            return PdfRAG(
-                base_url=base_url,
-                model=args.model,
-                path=args.path,
-                openai_api_key=openai_api_key
-            )
+            return PdfRAG(**kwargs)
 
         return None
 

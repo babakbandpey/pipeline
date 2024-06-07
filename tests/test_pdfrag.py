@@ -26,11 +26,12 @@ def pdf_rag(valid_path):
         base_url="https://api.openai.com/v1/",
         model="gpt-4o",
         openai_api_key=OPENAI_API_KEY,
-        path=valid_path
+        path=valid_path,
+        collection_name="pdf_collection",
     )
 
 
-def test_pdf_rag_initialization(pdf_rag, valid_path):
+def test_pdf_rag_initialization(pdf_rag: PdfRAG, valid_path: str):
     """
     Test the initialization of the PdfRAG class
     params: pdf_rag: PdfRAG
@@ -38,10 +39,11 @@ def test_pdf_rag_initialization(pdf_rag, valid_path):
     assert pdf_rag.base_url == "https://api.openai.com/v1/"
     assert pdf_rag.model == "gpt-4o"
     assert pdf_rag.openai_api_key == OPENAI_API_KEY
+    assert pdf_rag.collection_name == "pdf_collection"
     assert pdf_rag.path == valid_path
 
 
-def test_pdf_rag_invoke(pdf_rag):
+def test_pdf_rag_invoke(pdf_rag: PdfRAG):
     """
     Test the invoke method of the PdfRAG class
     params: pdf_rag: PdfRAG
@@ -49,3 +51,16 @@ def test_pdf_rag_invoke(pdf_rag):
 
     response = pdf_rag.invoke("Summarize the PDF file.")
     assert isinstance(response, str)
+    print(response)
+    assert response != "I don't know"
+
+
+# def test_pdf_rag_delete_collection(pdf_rag: PdfRAG):
+#     """
+#     Test the delete_collection method of the PdfRAG class
+#     params: pdf_rag: PdfRAG
+#     """
+#     pdf_rag.delete_collection()
+#     response = pdf_rag.invoke("Summarize the PDF file.")
+#     assert isinstance(response, str)
+#     assert response == "I don't know"

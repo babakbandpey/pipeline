@@ -27,34 +27,49 @@ class Pipeline:
     def __init__(self, **kwargs):
         """
         Initializes the Pipeline object.
-        params: base_url: The base URL of the Ollama server.
-        params: model: The name of the model to use.
+        params: kwargs: The keyword arguments to initialize the object with.
         """
-        self.base_url = kwargs.get('base_url')
-        self.model = kwargs.get('model')
-        self.openai_api_key = kwargs.get('openai_api_key')
-        self.collection_name = kwargs.get('collection_name', None)
 
-        if not self.base_url:
-            raise ValueError("base_url is required")
-        if not self.model:
-            raise ValueError("model is required")
-        if not self.openai_api_key:
-            raise ValueError("openai_api_key is required")
-
+        self._kwargs = kwargs
         self.chat = None
         self.chat_history = ChatMessageHistory()
         self.chat_prompt = None
-        self.vector_store = None
         self.chain_with_message_history = None
-        self.chat_session_id = self.generate_session_id()
+        self.logger = None
+        self.session_id = None
+        self.vector_store = None
 
+        self.setup_logging()
+        self.generate_session_id()
         self.setup_chat()
         self.setup_chat_prompt()
 
-        # Configure logging
-        logging.basicConfig(level=logging.INFO)
+
+    def setup_logging(self, level=logging.INFO):
+        """
+        Sets up logging for the pipeline.
+        params: level: The logging level to use.
+        """
+        logging.basicConfig(level=level)
         self.logger = logging.getLogger(__name__)
+
+
+    def __getattr__(self, name):
+        """
+        Get attribute by name
+        params: name: The name of the attribute.
+        returns: The attribute value if it exists, None otherwise.
+        """
+        if name in self._kwargs:
+            return self._kwargs.get(name)
+
+        self.logger.warning(
+            "'%s' object has no attribute '%s' set",
+            self.__class__.__name__,
+            name
+        )
+
+        return None
 
 
     def setup_chain_with_message_history(self):
@@ -83,8 +98,9 @@ class Pipeline:
         params: model: The name of the model to use.
         returns: The initialized Ollama object.
         """
+
         try:
-            if self.openai_api_key and self.model and self.base_url:
+            if self.openai_api_key:
                 # OpenAI
                 self.chat = ChatOpenAI(
                     base_url=self.base_url,
@@ -147,7 +163,7 @@ class Pipeline:
             )
 
 
-    def delte_vector_store(self):
+    def delete_collection(self):
         """
         Deletes the vector store.
         """
@@ -177,7 +193,7 @@ class Pipeline:
 
         response = self.chain_with_message_history.invoke(
             {"input": prompt},
-            {"configurable": {"session_id": self.chat_session_id}},
+            {"configurable": {"session_id": self.session_id}},
         )
 
         return response
@@ -255,6 +271,14 @@ class Pipeline:
 
         return True
 
+
+    def generate_session_id(self):
+        """
+        Generates a unique session ID.
+        """
+        self.session_id = str(uuid.uuid4())
+
+
     @staticmethod
     def recursive_character_text_splitter(chunk_size=500, chunk_overlap=0):
         """
@@ -275,13 +299,6 @@ class Pipeline:
         )
         return text_splitter
 
-    @staticmethod
-    def generate_session_id():
-        """
-        Generates a unique session ID.
-        returns: A unique session ID.
-        """
-        return str(uuid.uuid4())
 
     @staticmethod
     def split_data(document_splitter, data):
