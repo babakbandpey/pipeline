@@ -14,9 +14,8 @@ def main():
 
     args = Utils.get_args()
 
-
-    if args.type not in ['pdf', 'text']:
-        raise ValueError("The type should be 'pdf' or 'text'.")
+    if args.type not in ['pdf', 'txt']:
+        raise ValueError("The type should be 'pdf' or 'txt'.")
 
     files = Utils.get_files_from_path(args.path, f".{args.type}")
 
@@ -50,13 +49,12 @@ def main():
 
         response = chatbot.invoke(
             "Analyze the following text and identify the main topics or areas it covers. " +
-            "Sort these areas by their relevance to each other, ensuring that closely related topics are listed together. " +
-            "For example, if multiple areas are about 'passwords,' group them together." +
+            "Sort these areas by first by their priority and then by their precedence and then by their affinity to each other. " +
+            # "ensuring that closely related topics are listed together. " +
+            # "For example, if multiple areas are about 'passwords,' group them together." +
             """
             Example:
-            {
-                "areas_covered": [List of the topics or areas covered by the content]
-            }
+            {"areas_covered": [List of the topics or areas covered by the content]}
             """
         )
 
@@ -79,7 +77,8 @@ def main():
             requirements = Utils.parse_json_response(response)
 
             for z, requirement in enumerate(requirements['requirements']):
-                Utils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {requirement}.\n")
+                output = Utils.process_json_response(requirement)
+                Utils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n")
 
         chatbot.delete_collection()
         chatbot.clear_chat_history()

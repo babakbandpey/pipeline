@@ -279,7 +279,7 @@ def main():
 
     # Step 6: Create a chatbot to perform checks before committing the changes
     args = Utils.get_args()
-    args.type = "text"
+    args.type = "txt"
     args.path = "diff.txt"
     chatbot = Utils.create_chatbot(args)
 

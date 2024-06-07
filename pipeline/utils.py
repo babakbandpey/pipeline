@@ -44,7 +44,7 @@ class PipelineUtils():
             required=False,
             choices=[
             "chat",
-            "text",
+            "txt",
             "python",
             "web",
             "pdf",
@@ -207,7 +207,7 @@ class PipelineUtils():
             Examples:
             python .\\scripts\\run.py --type=chat or just python .\\scripts\\run.py
             python .\\scripts\\run.py --type=web --url=https://greydynamics.com/organisation-gladio/
-            python .\\scripts\\run.py --type=text --path=c:\\Users\\Me\\Documents\\policies
+            python .\\scripts\\run.py --type=txt --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=pdf --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=python --path=c:\\Users\\Me\\Documents\\project
             """)
@@ -259,7 +259,7 @@ class PipelineUtils():
         if args.type == "chat":
             return Chatbot(**kwargs)
 
-        if args.type == "text":
+        if args.type == "txt":
             return TextRAG(**kwargs)
 
         if args.type == "python":
@@ -325,9 +325,14 @@ class PipelineUtils():
         :param response: The response.
         :return: The JSON object.
         """
-        response = re.sub(r'```json|```', '', response)
-        response_json = json.loads(response)
-        return response_json
+        try:
+            response = re.sub(r'```json|```', '', response)
+            response_json = json.loads(response)
+            return response_json
+        except json.JSONDecodeError:
+            # logging.error("Error: The response is not a valid JSON.")
+            # print(response)
+            return response
 
 
     @staticmethod
@@ -335,19 +340,16 @@ class PipelineUtils():
         """
         Parse the JSON response and return the JSON object.
         :param response: The response.
-        :return: The JSON object.
+        :return: The JSON object
         """
-        try:
-            response_json = PipelineUtils.parse_json(response)
+        response_json = PipelineUtils.parse_json(response)
 
-            # controlling if the response_json is a json object
-            if isinstance(response_json, dict):
-                return response_json
-            else:
-                return None
-        except json.JSONDecodeError:
-            logging.error("Error: The response is not a valid JSON.")
-            return None
+        # controlling if the response_json is a json object
+        if isinstance(response_json, dict):
+            return response_json
+
+        print(response_json)
+        raise ValueError("The response is not a valid JSON object.")
 
     @staticmethod
     def process_json_response(response):
@@ -357,7 +359,10 @@ class PipelineUtils():
         :return: The markdown list.
         """
         try:
-            response_json = PipelineUtils.parse_json_response(response)
+            response_json = PipelineUtils.parse_json(response)
+
+            if isinstance(response_json, str):
+                return response_json
 
             # Create a markdown list from the JSON data
             markdown_list = ""
@@ -369,5 +374,8 @@ class PipelineUtils():
             return markdown_list
 
         except json.JSONDecodeError:
+            # If the response is not JSON, return the original text
+            return response
+        except ValueError:
             # If the response is not JSON, return the original text
             return response
