@@ -9,6 +9,8 @@ import os
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
+from .file_utils import FileUtils
+from .chatbot_utils import ChatbotUtils
 
 
 class TextRAG(Retrieval):
@@ -33,6 +35,7 @@ class TextRAG(Retrieval):
         self.extract_and_add_metadata()
         self.split_and_store_documents()
 
+
     def check_for_non_ascii_bytes(self):
         """
         Checks for non-ASCII bytes in a text file or directory.
@@ -40,14 +43,17 @@ class TextRAG(Retrieval):
         """
         def detect_and_clean(file_path):
             self.logger.info("Checking file: %s for non-ASCII bytes...", file_path)
-            non_ascii_positions = self.find_non_ascii_bytes(file_path)
+            non_ascii_positions = FileUtils.find_non_ascii_bytes(file_path)
             if non_ascii_positions:
                 self.logger.warning("Non-ASCII bytes found in file: %s", file_path)
                 self.logger.warning(non_ascii_positions)
                 if self.auto_clean:
-                    self.clean_non_ascii_bytes(file_path)
+                    FileUtils.clean_non_ascii_bytes(file_path)
                 else:
-                    raise ValueError(f"Non-ASCII bytes found in file: {file_path}. Please clean the file manually.")
+                    raise ValueError(
+                        f"Non-ASCII bytes found in file: {file_path}."
+                         "Please clean the file manually."
+                    )
 
         if not os.path.exists(self.path):
             raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
@@ -63,8 +69,8 @@ class TextRAG(Retrieval):
     def _load_documents(self):
         """Loads text documents from the filesystem."""
         if os.path.isdir(self.path):
-                loader = DirectoryLoader(self.path, glob="**/*.txt", loader_cls=TextLoader)
-                self.documents = loader.load()
+            loader = DirectoryLoader(self.path, glob="**/*.txt", loader_cls=TextLoader)
+            self.documents = loader.load()
         elif os.path.isfile(self.path) and self.path.endswith(".txt"):
             loader = TextLoader(self.path)
             self.documents = loader.load()
@@ -81,7 +87,7 @@ class TextRAG(Retrieval):
             first_line = document.page_content.split("\n")[0]
             if first_line.startswith("{") and first_line.endswith("}"):
                 try:
-                    metadata = self.clean_and_parse_json(first_line)
+                    metadata = ChatbotUtils.clean_and_parse_json(first_line)
                     self.logger.info("Metadata found in document: %s", metadata)
                     document.metadata.update(metadata)
                     document.page_content = "\n".join(document.page_content.split("\n")[1:])
@@ -90,38 +96,6 @@ class TextRAG(Retrieval):
                     self.logger.error("JSONDecodeError: %s", e)
                     raise
 
-    @staticmethod
-    def clean_and_parse_json(text):
-        """
-        Cleans and parses poorly formed JSON text to a dictionary.
-        Parameters:
-        - text: A string with poorly formed JSON.
-        Returns:
-        - A dictionary representation of the JSON text or None if parsing fails.
-        """
-        try:
-            text = text.replace("'", '"')
-            def replace_inner_quotes(part):
-                part = part.strip()
-                if part.startswith('"') and part.endswith('"'):
-                    part = part[1:-1]
-                    part = part.replace('"', "'")
-                    part = f'"{part}"'
-                return part
-            parts = text.split(":")
-            for index, part in enumerate(parts):
-                if "," in part:
-                    sub_parts = part.split(",")
-                    sub_parts = [replace_inner_quotes(sub_part) for sub_part in sub_parts]
-                    parts[index] = ",".join(sub_parts)
-                else:
-                    parts[index] = replace_inner_quotes(part)
-            text = ":".join(parts)
-            return json.loads(text)
-        except json.JSONDecodeError as e:
-            self.logger.error("Line: %s", text)
-            self.logger.error("JSONDecodeError: %s", e)
-            return None
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
@@ -129,33 +103,3 @@ class TextRAG(Retrieval):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
         all_chunks = self.split_data(text_splitter, self.documents)
         self.setup_vector_store(all_chunks)
-
-    @staticmethod
-    def find_non_ascii_bytes(file_path):
-        """
-        Finds non-ASCII bytes in a text file.
-        params: file_path: The path to the text file.
-        returns: A list of tuples containing the position and byte value of non-ASCII bytes.
-        """
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        non_ascii_positions = [(i, byte) for i, byte in enumerate(data) if byte > 0x7F]
-        return non_ascii_positions
-
-    @staticmethod
-    def clean_non_ascii_bytes(file_path, replacement_byte=b' '):
-        """
-        Cleans non-ASCII bytes from a text file.
-        params: file_path: The path to the text file.
-        params: replacement_byte: The byte to replace non-ASCII bytes with.
-        """
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        cleaned_data = bytearray()
-        for byte in data:
-            if byte > 0x7F:
-                cleaned_data.extend(replacement_byte)
-            else:
-                cleaned_data.append(byte)
-        with open(file_path, 'wb') as file:
-            file.write(cleaned_data)

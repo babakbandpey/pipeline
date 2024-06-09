@@ -29,7 +29,7 @@ class Chatbot(Pipeline):
         """
         # Validate and sanitize the prompt
         if not isinstance(prompt, str) or not prompt.strip():
-            logger.error("Invalid prompt provided")
+            self.logger.error("Invalid prompt provided")
             return "Invalid prompt provided. Please provide a non-empty string."
 
         sanitized_prompt = self.sanitize_input(prompt)
@@ -39,15 +39,19 @@ class Chatbot(Pipeline):
 
             # Ensure response has the expected attribute
             if not hasattr(response, 'content'):
-                logger.error("Response object does not have 'content' attribute")
+                self.logger.error("Response object does not have 'content' attribute")
                 raise AttributeError("Response object does not have 'content' attribute")
 
             return response.content
         except AttributeError as e:
-            logger.exception("AttributeError occurred while invoking the chatbot pipeline")
+            self.logger.exception(
+                "AttributeError occurred while invoking the chatbot pipeline"
+            )
             raise e
         except Exception as e:
-            logger.exception("An unexpected error occurred while invoking the chatbot pipeline")
+            self.logger.exception(
+                "An unexpected error occurred while invoking the chatbot pipeline"
+            )
             raise e
 
     def sanitize_input(self, input_str):

@@ -58,9 +58,6 @@ class PdfRAG(Retrieval):
 
     def split_and_store_documents(self):
         """Splits the documents into chunks and sets up the vector store."""
-        try:
-            pdf_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
-            all_chunks = self.split_data(pdf_splitter, self.documents)
-            self.setup_vector_store(all_chunks)
-        except Exception as e:
-            self.logger.error("An error occurred while splitting and storing documents: %s", e)
+        pdf_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
+        all_chunks = self.split_data(pdf_splitter, self.documents)
+        self.setup_vector_store(all_chunks)
