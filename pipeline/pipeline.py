@@ -9,6 +9,7 @@ Git Repo: https://github.com/babakbandpey/pipeline
 
 import uuid
 import logging
+from typing import Union
 from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.llms import Ollama
@@ -19,39 +20,17 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
 
-class Pipeline:
-    """
-    Represents a pipeline for the chatbot.
-    """
 
+class PipelineConfig:
+    """ Configuration for the pipeline. """
     def __init__(self, **kwargs):
-        """
-        Initializes the Pipeline object.
-        params: kwargs: The keyword arguments to initialize the object with.
-        """
 
         self._kwargs = kwargs
-        self.chat = None
-        self.chat_history = ChatMessageHistory()
-        self.chat_prompt = None
-        self.chain_with_message_history = None
         self.logger = None
         self.session_id = None
-        self.vector_store = None
 
         self.setup_logging()
         self.generate_session_id()
-        self.setup_chat()
-        self.setup_chat_prompt()
-
-
-    def setup_logging(self, level=logging.INFO):
-        """
-        Sets up logging for the pipeline.
-        params: level: The logging level to use.
-        """
-        logging.basicConfig(level=level)
-        self.logger = logging.getLogger(__name__)
 
 
     def __getattr__(self, name):
@@ -72,6 +51,67 @@ class Pipeline:
         return None
 
 
+    def setup_logging(self, level=logging.INFO):
+        """
+        Sets up logging for the pipeline.
+        params: level: The logging level to use.
+        """
+        logging.basicConfig(level=level)
+        self.logger = logging.getLogger(__name__)
+
+
+    def generate_session_id(self):
+        """
+        Generates a unique session ID.
+        """
+        self.session_id = str(uuid.uuid4())
+
+
+class PipelineSetup(PipelineConfig):
+    """ Configuration for the chatbot. """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.chat = None
+        self.chat_history = ChatMessageHistory()
+        self.chat_prompt = None
+        self.chain_with_message_history = None
+        self.vector_store = None
+
+        self.setup_chat()
+        self.setup_chat_prompt()
+
+
+    def setup_chat_prompt(self, system_template: str = None):
+        """
+        Sets up the chat prompt for the chatbot.
+        params: system_template: The system template to use.
+        returns: The initialized ChatPromptTemplate object.
+        """
+        if system_template is None:
+            system_template = """You are a helpful assistant.
+            Answer all questions to the best of your ability."""
+        elif not isinstance(system_template, str):
+            raise ValueError("system_template must be a string")
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_template),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("user", "{input}"),
+            ]
+        )
+
+        self.chat_prompt = prompt
+
+
+    def setup_chain(self) :
+        """
+        Gets the chat chain for the chatbot.
+        returns: The chat chain for the chatbot.
+        """
+        return self.chat_prompt | self.chat
+
+
     def setup_chain_with_message_history(self):
         """
         Sets up a chain with message history.
@@ -84,12 +124,40 @@ class Pipeline:
                 """Chat and chat prompt must be initialized
                 before setting up the chain with message history."""
             )
-        return RunnableWithMessageHistory(
+        self.chain_with_message_history = RunnableWithMessageHistory(
             runnable=self.setup_chain(),
             get_session_history=lambda session_history: self.chat_history,
             input_messages_key="input",
             history_messages_key="chat_history",
         )
+
+
+    def setup_vector_store(self, all_chunks):
+        """
+        Sets up the vector store with the specified chunks.
+        params: all_chunks: The chunks to set up the vector store with.
+        returns: The initialized vector store.
+        """
+        model_name = "all-MiniLM-L6-v2.gguf2.f16.gguf"
+        gpt4all_kwargs = {'allow_download': 'True'}
+
+        embeding = GPT4AllEmbeddings(
+            model_name = model_name,
+            gpt4all_kwargs = gpt4all_kwargs
+        )
+
+        if self.collection_name:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding,
+                collection_name=self.collection_name
+            )
+        else:
+            self.vector_store = Chroma.from_documents(
+                documents=all_chunks,
+                embedding=embeding
+            )
+
 
     def setup_chat(self):
         """
@@ -129,39 +197,11 @@ class Pipeline:
             self.logger.error("Unknown exception occurred: %s", e)
             raise e
 
-    def setup_chain(self):
-        """
-        Gets the chat chain for the chatbot.
-        returns: The chat chain for the chatbot.
-        """
-        return self.chat_prompt | self.chat
 
-    def setup_vector_store(self, all_chunks):
-        """
-        Sets up the vector store with the specified chunks.
-        params: all_chunks: The chunks to set up the vector store with.
-        returns: The initialized vector store.
-        """
-        model_name = "all-MiniLM-L6-v2.gguf2.f16.gguf"
-        gpt4all_kwargs = {'allow_download': 'True'}
-
-        embeding = GPT4AllEmbeddings(
-            model_name = model_name,
-            gpt4all_kwargs = gpt4all_kwargs
-        )
-
-        if self.collection_name:
-            self.vector_store = Chroma.from_documents(
-                documents=all_chunks,
-                embedding=embeding,
-                collection_name=self.collection_name
-            )
-        else:
-            self.vector_store = Chroma.from_documents(
-                documents=all_chunks,
-                embedding=embeding
-            )
-
+class Pipeline(PipelineSetup):
+    """
+    Represents a pipeline for the chatbot.
+    """
 
     def delete_collection(self):
         """
@@ -173,7 +213,7 @@ class Pipeline:
             self.logger.warning("Vector store is not initialized")
 
 
-    def add_texts_to_vector_store(self, all_chunks):
+    def add_texts_to_vector_store(self, all_chunks) -> None:
         """
         Adds the specified text to the vector store.
         params: all_chunks: The text to add to the vector store.
@@ -183,20 +223,27 @@ class Pipeline:
         else:
             self.vector_store.add_texts(all_chunks)
 
+
     def invoke(self, prompt):
         """
         Invokes the chatbot with the specified query.
         params: prompt: The prompt to use.
         """
-        if self.chain_with_message_history is None:
-            self.chain_with_message_history = self.setup_chain_with_message_history()
 
-        response = self.chain_with_message_history.invoke(
-            {"input": prompt},
-            {"configurable": {"session_id": self.session_id}},
-        )
+        if not self.chain_with_message_history:
+            self.setup_chain_with_message_history()
+
+        try:
+            response = self.chain_with_message_history.invoke(
+                {"input": prompt},
+                {"configurable": {"session_id": self.session_id}},
+            )
+        except Exception as e:
+            self.logger.error("Error invoking the chatbot: %s", e)
+            raise e
 
         return response
+
 
     def clear_chat_history(self):
         """
@@ -207,7 +254,8 @@ class Pipeline:
         else:
             self.logger.warning("Chat history is not initialized")
 
-    def modify_chat_history(self, num_messages: int):
+
+    def modify_chat_history(self, num_messages: int) -> bool:
         """
         Deletes the chat history.
         params: num_messages: The number of messages to keep.
@@ -239,7 +287,8 @@ class Pipeline:
 
         return True
 
-    def summarize_messages(self):
+
+    def summarize_messages(self) -> bool:
         """
         Summarizes the chat history and deletes the messages.
         returns: True if the chat history is summarized, False otherwise.
@@ -272,15 +321,11 @@ class Pipeline:
         return True
 
 
-    def generate_session_id(self):
-        """
-        Generates a unique session ID.
-        """
-        self.session_id = str(uuid.uuid4())
-
-
     @staticmethod
-    def recursive_character_text_splitter(chunk_size=500, chunk_overlap=0):
+    def recursive_character_text_splitter(
+        chunk_size=500,
+        chunk_overlap=0
+        ) -> RecursiveCharacterTextSplitter:
         """
         Splits the data into chunks using the specified chunk size and overlap.
         params: chunk_size: The size of the chunks.
@@ -301,7 +346,7 @@ class Pipeline:
 
 
     @staticmethod
-    def split_data(document_splitter, data):
+    def split_data(document_splitter: Union[RecursiveCharacterTextSplitter], data: list) -> list:
         """
         Splits the data into chunks using the specified text splitter.
         params: document_splitter: The text splitter object to split the data with.
@@ -315,30 +360,8 @@ class Pipeline:
 
         return document_splitter.split_documents(data)
 
-    def setup_chat_prompt(self, system_template: str = None):
-        """
-        Sets up the chat prompt for the chatbot.
-        params: system_template: The system template to use.
-        returns: The initialized ChatPromptTemplate object.
-        """
-        if system_template is None:
-            system_template = """You are a helpful assistant.
-            Answer all questions to the best of your ability."""
-        elif not isinstance(system_template, str):
-            raise ValueError("system_template must be a string")
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_template),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("user", "{input}"),
-            ]
-        )
-
-        self.chat_prompt = prompt
-
-
-    def sanitize_input(self, input_str):
+    def sanitize_input(self, input_str) -> str:
         """
         Sanitizes user input to prevent injection attacks.
         params: input_str: The input text to sanitize.

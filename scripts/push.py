@@ -27,9 +27,8 @@ Note: This script assumes that the necessary dependencies are installed and
 import subprocess
 import sys
 import os
-import json
 from datetime import datetime
-from pipeline import Utils
+from pipeline import PipelineUtils, ChatbotUtils
 
 def run_command(command):
     """Run a shell command and return the output."""
@@ -37,7 +36,7 @@ def run_command(command):
         result = subprocess.run(command, text=True, capture_output=True, check=True)
         return result.stdout.strip(), result.returncode
     except subprocess.CalledProcessError as e:
-        print(f"Error running command '{command}': {e}")
+        ChatbotUtils.logger().exception("Error running command '%s': %s", " ".join(command), e)
         sys.exit(e.returncode)
 
 def has_changes_to_commit():
@@ -52,23 +51,23 @@ def get_current_branch_name():
 
 def stage_changes():
     """Stage all changes including untracked files."""
-    print("Staging all changes...")
+    ChatbotUtils.logger().info("Staging all changes...")
     run_command(["git", "add", "-A"])
 
 def unstage_changes():
     """Unstage all changes."""
-    print("Unstaging all changes...")
+    ChatbotUtils.logger().info("Unstaging all changes...")
     run_command(["git", "reset"])
 
 def generate_diff():
     """Generate diff.txt including all changes."""
-    print("Generating diff.txt...")
+    ChatbotUtils.logger().info("Generating diff.txt...")
     try:
         with open("diff.txt", "w", encoding='utf-8') as diff_file:
             diff, _ = run_command(["git", "diff", "--staged"])
             diff_file.write(diff)
     except IOError as e:
-        print(f"Error generating diff.txt: {e}")
+        ChatbotUtils.logger().exception("Error generating diff.txt: %s", e)
         sys.exit(1)
 
 def branch_exists(branch_name):
@@ -88,26 +87,26 @@ def create_and_checkout_new_branch():
             new_branch_name = f"branch_{timestamp}"
 
         if new_branch_name == "main":
-            print("Branch name cannot be 'main'. Please choose another name.")
+            ChatbotUtils.logger().warning("Branch name cannot be 'main'. Please choose another name.")
             continue
 
         if branch_exists(new_branch_name):
-            print(f"Branch name '{new_branch_name}' already exists. Please choose another name.")
+            ChatbotUtils.logger().warning("Branch name '%s' already exists. Please choose another name.", new_branch_name)
             continue
 
-        print(f"Creating and checking out new branch: {new_branch_name}")
+        ChatbotUtils.logger().info("Creating and checking out new branch: %s", new_branch_name)
         run_command(["git", "checkout", "-b", new_branch_name])
         return new_branch_name
 
 def run_tests():
     """Run pytest and abort if tests fail."""
-    print("Running tests...")
+    ChatbotUtils.logger().info("Running tests...")
     try:
         run_command(["pytest"])
     except subprocess.CalledProcessError:
-        print("Tests failed. Aborting commit.")
+        ChatbotUtils.logger().exception("Tests failed. Aborting commit.")
         sys.exit(1)
-    print("All tests passed.")
+    ChatbotUtils.logger().info("All tests passed.")
 
 
 def run_checks(chatbot):
@@ -122,7 +121,7 @@ def run_checks(chatbot):
     )
 
     if security_check:
-        print(f"Security check: {security_check}")
+        ChatbotUtils.logger().info("Security check: %s", security_check)
         response = input("Is the security check okay? (y/n): ").strip().lower()
         if response == "n":
             return False
@@ -132,7 +131,7 @@ def run_checks(chatbot):
     )
 
     if vulnerability_check:
-        print(f"Vulnerability check: {vulnerability_check}")
+        ChatbotUtils.logger().info("Vulnerability check: %s", vulnerability_check)
         response = input("Is the vulnerability check okay? (y/n): ").strip().lower()
         if response == "n":
             return False
@@ -142,7 +141,7 @@ def run_checks(chatbot):
     )
 
     if code_quality_check:
-        print(f"Code quality check: {code_quality_check}")
+        ChatbotUtils.logger().info("Code quality check: %s", code_quality_check)
         response = input("Is the code quality check okay? (y/n): ").strip().lower()
         if response == "n":
             return False
@@ -152,7 +151,7 @@ def run_checks(chatbot):
     )
 
     if pylint_check:
-        print(f"Pylint check: {pylint_check}")
+        ChatbotUtils.logger().info("Pylint check: %s", pylint_check)
         response = input("Is the pylint check okay? (y/n): ").strip().lower()
         if response == "n":
             return False
@@ -171,7 +170,7 @@ def run_checks(chatbot):
     )
 
     if improvement_check:
-        print(improvement_check)
+        ChatbotUtils.logger().info(improvement_check)
 
     response = input("Do you want to implement the improvement? (y/n): ").strip().lower()
     if response == "y":
@@ -181,7 +180,7 @@ def run_checks(chatbot):
 
 def create_commit_message(chatbot):
     """Create a commit message."""
-    print("Running chatbot.py to generate commit message...")
+    ChatbotUtils.logger().info("Running chatbot.py to generate commit message...")
     try:
         while True:
             commit_message = chatbot.invoke(
@@ -199,9 +198,9 @@ def create_commit_message(chatbot):
             )
 
             if commit_message:
-                commit_message_json = Utils.parse_json_response(commit_message)
+                commit_message_json = ChatbotUtils.parse_json(commit_message)
                 if commit_message_json is None:
-                    print("Invalid JSON format. Truing again... CTRL+C to abort.")
+                    ChatbotUtils.logger().warning("Invalid JSON format. Truing again... CTRL+C to abort.")
                     continue
                 commit_message = commit_message_json.get('title', 'No Title!')
                 commit_message += "\n\nDescription:\n"
@@ -210,7 +209,7 @@ def create_commit_message(chatbot):
                     commit_message += f"{i}. {sentence.strip()}.\n"
                 commit_message += f"\nType: {commit_message_json.get('type', 'No Type!')}"
 
-                print(f"Generated commit message: {commit_message}")
+                ChatbotUtils.logger().info("Generated commit message: %s", commit_message)
                 response = input("Is the commit message okay? (y/n): ").strip().lower()
                 if response == "y":
                     with open("commit_message.txt", "w", encoding='utf-8') as commit_message_file:
@@ -220,11 +219,11 @@ def create_commit_message(chatbot):
         return True
 
     except KeyboardInterrupt:
-        print("Aborting commit.")
+        ChatbotUtils.logger().exception("Aborting commit.")
     except ValueError as e:
-        print(f"Error generating commit message: {e}")
+        ChatbotUtils.logger().exception("Error generating commit message: %s", e)
     except Exception as e:
-        print(f"Error: {e}")
+        ChatbotUtils.logger().exception("Error: %s", e)
 
     return False
 
@@ -237,13 +236,13 @@ def cleanup():
     try:
         os.remove("diff.txt")
     except OSError as e:
-        print(f"Error removing diff.txt: {e}")
+        ChatbotUtils.logger().error("Error removing diff.txt: %s", e)
         return False
 
     try:
         os.remove("commit_message.txt")
     except OSError as e:
-        print(f"Error removing commit_message.txt: {e}")
+        ChatbotUtils.logger().error("Error removing commit_message.txt: %s", e)
         return False
 
     return True
@@ -254,18 +253,18 @@ def main():
 
     # Step 0: Check if there are any changes to commit
     if not has_changes_to_commit():
-        print("No changes to commit.")
+        ChatbotUtils.logger().info("No changes to commit.")
         # push changes to remote
         run_command(["git", "push"])
         sys.exit(0)
 
     # Step 1: Get the current branch name
     branch_name = get_current_branch_name()
-    print(f"Current branch: {branch_name}")
+    ChatbotUtils.logger().info("Current branch: %s", branch_name)
 
     # Step 2: Handle being on the main branch
     if branch_name == "main":
-        print("Currently on the main branch. Creating a new branch.")
+        ChatbotUtils.logger().info("Currently on the main branch. Creating a new branch.")
         branch_name = create_and_checkout_new_branch()
 
     # Step 3: Stage all changes
@@ -278,33 +277,33 @@ def main():
     run_tests()
 
     # Step 6: Create a chatbot to perform checks before committing the changes
-    args = Utils.get_args()
+    args = PipelineUtils.get_args()
     args.type = "txt"
     args.path = "diff.txt"
-    chatbot = Utils.create_chatbot(args)
+    chatbot = PipelineUtils.create_chatbot(args)
 
     # Step 7: Run checks before committing the changes
     if not run_checks(chatbot) or not create_commit_message(chatbot):
-        print("Aborting commit.")
+        ChatbotUtils.logger().info("Aborting commit.")
         unstage_changes()
         cleanup()
         sys.exit(0)
 
     response = input("Do you want to continue with the commit? (y/n): ").strip().lower()
     if response == "n":
-        print("Aborting commit.")
+        ChatbotUtils.logger().info("Aborting commit.")
         sys.exit(0)
 
     # Step 8: Perform git commit
-    print("Committing changes...")
+    ChatbotUtils.logger().info("Committing changes...")
     run_command(["git", "commit", "-aF", "commit_message.txt"])
 
     # Step 9: Cleanup
-    print("Cleaning up...")
+    ChatbotUtils.logger().info("Cleaning up...")
     cleanup()
 
     # Step 10: Set upstream branch and push changes
-    print(f"Setting upstream branch to {branch_name} and pushing changes...")
+    ChatbotUtils.logger().info("Setting upstream branch to %s and pushing changes...", branch_name)
     run_command(["git", "push", "--set-upstream", "origin", branch_name])
 
 

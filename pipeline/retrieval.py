@@ -62,7 +62,10 @@ class Retrieval(Pipeline):
         if search_type is None:
             search_type = "mmr"
         elif search_type not in valid_search_types:
-            raise ValueError(f"Invalid search_type: {search_type}. Must be one of {valid_search_types}")
+            raise ValueError(
+                f"Invalid search_type: {search_type}."
+                f"Must be one of {valid_search_types}."
+            )
 
         if search_kwargs is None:
             search_kwargs = {"k": 50, "fetch_k": 50}
@@ -77,8 +80,10 @@ class Retrieval(Pipeline):
                 ("user", "{input}"),
                 (
                     "user",
-                    "Given the above conversation, generate a search query\
-                          to look up to get information relevant to the conversation",
+                    (
+                        "Given the above conversation, generate a search query"
+                        " to look up to get information relevant to the conversation"
+                    )
                 ),
             ]
         )
@@ -110,16 +115,17 @@ class Retrieval(Pipeline):
             self.logger.error("FileNotFoundError occurred: %s", e)
         except PermissionError as e:
             self.logger.error("PermissionError occurred: %s", e)
-        except Exception as e:
-            self.logger.error("An unexpected error occurred: %s", e)
 
 
     @abstractmethod
     def _load_documents(self):
-        """Loads documents from the filesystem."""
+        """
+        Loads documents from the filesystem.
+        This method initializes the documents attribute.
+        """
 
 
-    def invoke(self, prompt):
+    def invoke(self, prompt) -> str:
         """
         Invokes the chatbot with the specified query.
         params: prompt: The prompt to use.
@@ -131,12 +137,8 @@ class Retrieval(Pipeline):
         sanitized_prompt = self.sanitize_input(prompt)
         self.chat_history.add_user_message(sanitized_prompt)
 
-        try:
-            response = super().invoke(sanitized_prompt)
-            answer = response.get("answer", "No answer found")
-        except Exception as e:
-            self.logger.error("Error invoking chatbot: %s", e)
-            answer = "An error occurred while processing your request."
+        response = super().invoke(sanitized_prompt)
+        answer = response.get("answer", "No answer found")
 
         self.chat_history.add_ai_message(answer)
         return answer

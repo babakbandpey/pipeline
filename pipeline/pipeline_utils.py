@@ -5,10 +5,8 @@ Shared utility functions.
 import datetime
 import os
 import sys
-import re
-import json
 import argparse
-import logging
+from typing import Union
 from .config import OPENAI_API_KEY
 from .chatbot import Chatbot
 from .text_rag import TextRAG
@@ -193,38 +191,46 @@ class PipelineUtils():
         action = commands.get(prompt, default_action)
         return action()
 
-
     @staticmethod
-    def create_chatbot(args):
-        """
-        Create the chatbot.
-        :param args: The arguments.
-        :return: The chatbot.
-        """
-
-        if args.example:
-            print("""
+    def print_examples():
+        """ Print some examples of how to run the script. """
+        print("""
             Examples:
             python .\\scripts\\run.py --type=chat or just python .\\scripts\\run.py
             python .\\scripts\\run.py --type=web --url=https://greydynamics.com/organisation-gladio/
             python .\\scripts\\run.py --type=txt --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=pdf --path=c:\\Users\\Me\\Documents\\policies
             python .\\scripts\\run.py --type=python --path=c:\\Users\\Me\\Documents\\project
-            """)
-            sys.exit(0)
+        """)
+
+
+    @staticmethod
+    def get_base_url_and_api_key(args: argparse.Namespace) -> tuple[str, str]:
+        """
+        Get the base URL and the API key.
+        :param args: The arguments.
+        :return: The base URL and the API key.
+        """
 
         if args.model == "llaama3":
-            base_url = "http://localhost:11434"
-            openai_api_key = None
-        elif args.model == "phi3":
-            base_url = "http://localhost:11434"
-            openai_api_key = None
-        elif "gpt" in args.model:
-            base_url = "https://api.openai.com/v1/"
-            openai_api_key = args.openai_api_key
-        else:
-            base_url = "http://localhost:1234/v1"
-            openai_api_key = None
+            return "http://localhost:11434", None
+        if args.model == "phi3":
+            return "http://localhost:11434", None
+        if "gpt" in args.model:
+            return "https://api.openai.com/v1/", args.openai_api_key
+
+        return "http://localhost:1234/v1", None
+
+
+    @staticmethod
+    def get_kwargs(args: argparse.Namespace) -> dict:
+        """
+        Get the keyword arguments.
+        :param args: The arguments.
+        :return: The keyword arguments.
+        """
+
+        base_url, openai_api_key = PipelineUtils.get_base_url_and_api_key(args)
 
         if hasattr(args, 'collection_name') and args.collection_name is not None:
             collection_name = args.collection_name
@@ -246,7 +252,7 @@ class PipelineUtils():
         else:
             url = None
 
-        kwargs = {
+        return {
             "base_url": base_url,
             "model": args.model,
             "openai_api_key": openai_api_key,
@@ -255,6 +261,21 @@ class PipelineUtils():
             "path": path,
             "url": url
         }
+
+
+    @staticmethod
+    def create_chatbot(args) -> Union[Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG]:
+        """
+        Create the chatbot.
+        :param args: The arguments.
+        :return: The chatbot.
+        """
+
+        if args.example:
+            PipelineUtils.print_examples()
+            sys.exit(0)
+
+        kwargs = PipelineUtils.get_kwargs(args)
 
         if args.type == "chat":
             return Chatbot(**kwargs)
@@ -286,96 +307,3 @@ class PipelineUtils():
             return PdfRAG(**kwargs)
 
         return None
-
-    @staticmethod
-    def get_files():
-        """Get all python files in the codebase."""
-        files = []
-        for root, _, filenames in os.walk("."):
-            for filename in filenames:
-                if filename.endswith(".py") and "env" not in root and '.git' not in root:
-                    files.append(os.path.join(root, filename))
-        return files
-
-
-    @staticmethod
-    def write_to_file(output_file, response):
-        """Write the response to a file."""
-        with open(output_file, "a", encoding='utf-8') as file:
-            file.write(response)
-            file.write("\n\n")
-
-    @staticmethod
-    def get_files_from_path(path, file_extension=".py"):
-        """Get a list of Python files from the given path."""
-        if not os.path.exists(path):
-            logging.error("Error: The path '%s' does not exist.", path)
-            return []
-
-        if os.path.isfile(path):
-            return [path]
-        else:
-            return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(file_extension)]
-
-
-    @staticmethod
-    def parse_json(response):
-        """
-        Parse the JSON response and return the JSON object.
-        :param response: The response.
-        :return: The JSON object.
-        """
-        try:
-            response = re.sub(r'```json|```', '', response)
-            response_json = json.loads(response)
-            return response_json
-        except json.JSONDecodeError:
-            # logging.error("Error: The response is not a valid JSON.")
-            # print(response)
-            return response
-
-
-    @staticmethod
-    def parse_json_response(response):
-        """
-        Parse the JSON response and return the JSON object.
-        :param response: The response.
-        :return: The JSON object
-        """
-        response_json = PipelineUtils.parse_json(response)
-
-        # controlling if the response_json is a json object
-        if isinstance(response_json, dict):
-            return response_json
-
-        print(response_json)
-        raise ValueError("The response is not a valid JSON object.")
-
-    @staticmethod
-    def process_json_response(response):
-        """
-        Process the JSON response and return a markdown list.
-        :param response: The response.
-        :return: The markdown list.
-        """
-        try:
-            response_json = PipelineUtils.parse_json(response)
-
-            if isinstance(response_json, str):
-                return response_json
-
-            # Create a markdown list from the JSON data
-            markdown_list = ""
-            for key, items in response_json.items():
-                markdown_list += f"**{key}**\n"
-                for item in items:
-                    markdown_list += f"\t- {item}\n"
-
-            return markdown_list
-
-        except json.JSONDecodeError:
-            # If the response is not JSON, return the original text
-            return response
-        except ValueError:
-            # If the response is not JSON, return the original text
-            return response
