@@ -40,7 +40,9 @@ def generate_requirements(
         # Check if the file already exists
         if os.path.exists(file_path):
             if not overwrite:
-                logging.warning("%s already exists. Use overwrite=True to overwrite the file.", file_path)
+                logging.warning(
+                    "%s already exists. Use overwrite=True to overwrite the file.", file_path
+                )
                 return
             logging.info("%s already exists and will be overwritten.", file_path)
 
@@ -63,8 +65,7 @@ def generate_requirements(
         logging.error("An error occurred while running %s freeze: %s", pip_cmd, e)
     except IOError as e:
         logging.error("An error occurred while writing to %s: %s", file_path, e)
-    except Exception as e:
-        logging.error("An unexpected error occurred: %s", e)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate requirements.txt")
