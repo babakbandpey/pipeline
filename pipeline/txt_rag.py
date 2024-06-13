@@ -13,7 +13,7 @@ from .file_utils import FileUtils
 from .chatbot_utils import ChatbotUtils
 
 
-class TextRAG(Retrieval):
+class TxtRAG(Retrieval):
     """
     Represents a Python RAG pipeline.
     Extends the Retrieval class.
