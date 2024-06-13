@@ -66,11 +66,18 @@ class ChatbotUtils:
         :param response: The response.
         :return: The JSON object.
         """
+        # if response is dict, return it
+        if isinstance(response, dict):
+            return response
+
         try:
             response = re.sub(r'```json|```', '', response)
             response_json = json.loads(response)
             return response_json
         except json.JSONDecodeError:
+            # logging.error("Error: The response is not a valid JSON.")
+            return response
+        except ValueError:
             # logging.error("Error: The response is not a valid JSON.")
             return response
 
