@@ -29,6 +29,16 @@ class FileUtils:
 
 
     @staticmethod
+    def prepend_to_file(file_path, text):
+        """Prepend text to a file."""
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(text)
+            file.write(content)
+
+
+    @staticmethod
     def get_files_from_path(path, file_extension=".py") -> list:
         """Get a list of Python files from the given path."""
         if not os.path.exists(path):
