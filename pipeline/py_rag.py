@@ -12,7 +12,7 @@ from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
 
-class PythonRAG(Retrieval):
+class PyRAG(Retrieval):
     """
     Represents a Python RAG pipeline.
     Extends the Retrieval class.

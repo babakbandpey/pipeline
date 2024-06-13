@@ -6,9 +6,9 @@ Description: The pipeline module provides a high-level interface for running a c
 
 from .config import OPENAI_API_KEY
 from .chatbot import Chatbot
-from .text_rag import TextRAG
+from .txt_rag import TxtRAG
 from .web_rag import WebRAG
-from .python_rag import PythonRAG
+from .py_rag import PyRAG
 from .pdf_rag import PdfRAG
 from .pipeline_utils import PipelineUtils
 from .file_utils import FileUtils
@@ -19,9 +19,9 @@ __all__ = [
     'FileUtils',
     'ChatbotUtils',
     'Chatbot',
-    'TextRAG',
+    'TxtRAG',
     'WebRAG',
-    'PythonRAG',
+    'PyRAG',
     'OPENAI_API_KEY',
     'PdfRAG',
 ]

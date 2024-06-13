@@ -9,8 +9,8 @@ import argparse
 from typing import Union
 from .config import OPENAI_API_KEY
 from .chatbot import Chatbot
-from .text_rag import TextRAG
-from .python_rag import PythonRAG
+from .txt_rag import TxtRAG
+from .py_rag import PyRAG
 from .web_rag import WebRAG
 from .pdf_rag import PdfRAG
 
@@ -264,7 +264,7 @@ class PipelineUtils():
 
 
     @staticmethod
-    def create_chatbot(args) -> Union[Chatbot, TextRAG, PythonRAG, WebRAG, PdfRAG]:
+    def create_chatbot(args) -> Union[Chatbot, TxtRAG, PyRAG, WebRAG, PdfRAG]:
         """
         Create the chatbot.
         :param args: The arguments.
@@ -281,7 +281,7 @@ class PipelineUtils():
             return Chatbot(**kwargs)
 
         if args.type == "txt":
-            return TextRAG(**kwargs)
+            return TxtRAG(**kwargs)
 
         if args.type == "python":
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -298,7 +298,7 @@ class PipelineUtils():
 
             kwargs["exclude"] = exclude_paths
 
-            return PythonRAG(**kwargs)
+            return PyRAG(**kwargs)
 
         if args.type == "web":
             return WebRAG(**kwargs)
