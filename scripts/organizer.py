@@ -39,8 +39,9 @@ def organize_content(args):
 
     for file in files:
         # Create an output file with timestamp .md file and write the response to it
+        print(f"Processing file: {file}")
         output_file = (
-            f"{file.replace(' ', '-').replace('.pdf', '').replace('.txt', '')}-"
+            f"{file.replace(' ', ' ').replace('.pdf', '').replace('.txt', '')}-"
             f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         )
 
@@ -68,6 +69,20 @@ def organize_content(args):
                         FileUtils.write_to_file(output_file, f"{output}\n")
                     else:
                         FileUtils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n")
+
+
+        # Get the purpose of the policies and the requirements
+        prompt = "Write the purpose of the policies and the requirements in a few sentences."
+        purpose = analyzer(chatbot, prompt)
+
+        FileUtils.prepend_to_file(output_file, f"# Purpose\n\n{purpose['purpose']}\n\n")
+
+        # Get a description of the content
+        prompt = "Summarize the content in a few sentences."
+        summary = analyzer(chatbot, prompt)
+
+        FileUtils.prepend_to_file(output_file, f"# Summary\n\n{summary['summary']}\n\n")
+
 
         chatbot.delete_collection()
         chatbot.clear_chat_history()
