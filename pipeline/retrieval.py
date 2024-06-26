@@ -5,12 +5,14 @@ author: Babak Bandpey
 This Python code is part of a class named Retrieval.
 """
 
+import os
 import sys
 from abc import abstractmethod
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
 from .pipeline import Pipeline
+from .file_utils import FileUtils
 
 class Retrieval(Pipeline):
     """
@@ -33,6 +35,7 @@ class Retrieval(Pipeline):
             """
 
         if not isinstance(system_template, str):
+            self.logger.error("system_template must be a string %s", system_template)
             raise ValueError("system_template must be a string")
 
         if "{context}" not in system_template:
@@ -142,3 +145,33 @@ class Retrieval(Pipeline):
 
         self.chat_history.add_ai_message(answer)
         return answer
+
+
+    def check_for_non_ascii_bytes(self):
+        """
+        Checks for non-ASCII bytes in a text file or directory.
+        If non-ASCII bytes are found, the user is prompted to clean the file.
+        """
+        def detect_and_clean(file_path):
+            self.logger.info("Checking file: %s for non-ASCII bytes...", file_path)
+            non_ascii_positions = FileUtils.find_non_ascii_bytes(file_path)
+            if non_ascii_positions:
+                self.logger.warning("Non-ASCII bytes found in file: %s", file_path)
+                self.logger.warning(non_ascii_positions)
+                if self.auto_clean:
+                    FileUtils.clean_non_ascii_bytes(file_path)
+                else:
+                    raise ValueError(
+                        f"Non-ASCII bytes found in file: {file_path}."
+                         "Please clean the file manually."
+                    )
+
+        if not os.path.exists(self.path):
+            raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
+        if os.path.isdir(self.path):
+            for file in os.listdir(self.path):
+                if file.endswith(".txt"):
+                    file_path = os.path.join(self.path, file)
+                    detect_and_clean(file_path)
+        else:
+            detect_and_clean(self.path)

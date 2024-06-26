@@ -10,11 +10,13 @@ from .txt_rag import TxtRAG
 from .web_rag import WebRAG
 from .py_rag import PyRAG
 from .pdf_rag import PdfRAG
+from .json_rag import JsonRAG
 from .pipeline_utils import PipelineUtils
 from .file_utils import FileUtils
 from .chatbot_utils import ChatbotUtils
 
 __all__ = [
+    'OPENAI_API_KEY',
     'PipelineUtils',
     'FileUtils',
     'ChatbotUtils',
@@ -22,8 +24,8 @@ __all__ = [
     'TxtRAG',
     'WebRAG',
     'PyRAG',
-    'OPENAI_API_KEY',
     'PdfRAG',
+    'JsonRAG',
 ]
 
 __version__ = '0.5.0'

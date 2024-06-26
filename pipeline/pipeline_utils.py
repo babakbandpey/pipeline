@@ -8,11 +8,7 @@ import sys
 import argparse
 from typing import Union
 from .config import OPENAI_API_KEY
-from .chatbot import Chatbot
-from .txt_rag import TxtRAG
-from .py_rag import PyRAG
-from .web_rag import WebRAG
-from .pdf_rag import PdfRAG
+from .rag_factory import RAGFactory
 
 class PipelineUtils():
     """ Utility class for the pipeline. """
@@ -46,6 +42,7 @@ class PipelineUtils():
             "python",
             "web",
             "pdf",
+            "json"
             ],
             help="Class type to use.",
             default="chat"
@@ -264,7 +261,7 @@ class PipelineUtils():
 
 
     @staticmethod
-    def create_chatbot(args) -> Union[Chatbot, TxtRAG, PyRAG, WebRAG, PdfRAG]:
+    def create_chatbot(args) -> RAGFactory:
         """
         Create the chatbot.
         :param args: The arguments.
@@ -278,10 +275,10 @@ class PipelineUtils():
         kwargs = PipelineUtils.get_kwargs(args)
 
         if args.type == "chat":
-            return Chatbot(**kwargs)
+            return RAGFactory.get_rag_class("chat", **kwargs)
 
         if args.type == "txt":
-            return TxtRAG(**kwargs)
+            return RAGFactory.get_rag_class("txt", **kwargs)
 
         if args.type == "python":
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -298,12 +295,15 @@ class PipelineUtils():
 
             kwargs["exclude"] = exclude_paths
 
-            return PyRAG(**kwargs)
+            return RAGFactory.get_rag_class("py", **kwargs)
 
         if args.type == "web":
-            return WebRAG(**kwargs)
+            return RAGFactory.get_rag_class("web", **kwargs)
 
         if args.type == "pdf":
-            return PdfRAG(**kwargs)
+            return RAGFactory.get_rag_class("pdf", **kwargs)
+
+        if args.type == "json":
+            return RAGFactory.get_rag_class("json", **kwargs)
 
         return None

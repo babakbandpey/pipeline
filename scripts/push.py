@@ -103,8 +103,8 @@ def run_tests():
     ChatbotUtils.logger().info("Running tests...")
     try:
         run_command(["pytest"])
-    except subprocess.CalledProcessError:
-        ChatbotUtils.logger().exception("Tests failed. Aborting commit.")
+    except subprocess.CalledProcessError as e:
+        ChatbotUtils.logger().exception("Tests failed. Aborting commit. %s", e)
         sys.exit(1)
     ChatbotUtils.logger().info("All tests passed.")
 

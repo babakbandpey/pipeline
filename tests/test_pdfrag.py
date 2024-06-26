@@ -13,7 +13,7 @@ def valid_path():
     """
     Return the path to a valid PDF file
     """
-    return os.path.join(os.path.dirname(__file__), "data\\test.pdf")
+    return os.path.join(os.path.dirname(__file__), "data/test.pdf")
 
 
 @pytest.fixture
