@@ -9,7 +9,6 @@ import os
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .retrieval import Retrieval
-from .file_utils import FileUtils
 from .chatbot_utils import ChatbotUtils
 
 
@@ -34,36 +33,6 @@ class TxtRAG(Retrieval):
         self.load_documents()
         self.extract_and_add_metadata()
         self.split_and_store_documents()
-
-
-    def check_for_non_ascii_bytes(self):
-        """
-        Checks for non-ASCII bytes in a text file or directory.
-        If non-ASCII bytes are found, the user is prompted to clean the file.
-        """
-        def detect_and_clean(file_path):
-            self.logger.info("Checking file: %s for non-ASCII bytes...", file_path)
-            non_ascii_positions = FileUtils.find_non_ascii_bytes(file_path)
-            if non_ascii_positions:
-                self.logger.warning("Non-ASCII bytes found in file: %s", file_path)
-                self.logger.warning(non_ascii_positions)
-                if self.auto_clean:
-                    FileUtils.clean_non_ascii_bytes(file_path)
-                else:
-                    raise ValueError(
-                        f"Non-ASCII bytes found in file: {file_path}."
-                         "Please clean the file manually."
-                    )
-
-        if not os.path.exists(self.path):
-            raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
-        if os.path.isdir(self.path):
-            for file in os.listdir(self.path):
-                if file.endswith(".txt"):
-                    file_path = os.path.join(self.path, file)
-                    detect_and_clean(file_path)
-        else:
-            detect_and_clean(self.path)
 
 
     def _load_documents(self):

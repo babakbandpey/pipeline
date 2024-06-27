@@ -1,0 +1,599 @@
+{
+  "Target Specification": [
+    {
+      "SWITCH": "",
+      "EXAMPLE": "nmap 192.168.1.1",
+      "DESCRIPTION": "Scan a single IP"
+    },
+    {
+      "SWITCH": "",
+      "EXAMPLE": "nmap 192.168.1.1 192.168.2.1",
+      "DESCRIPTION": "Scan specific IPs"
+    },
+    {
+      "SWITCH": "",
+      "EXAMPLE": "nmap 192.168.1.1-254",
+      "DESCRIPTION": "Scan a range"
+    },
+    {
+      "SWITCH": "",
+      "EXAMPLE": "nmap scanme.nmap.org",
+      "DESCRIPTION": "Scan a domain"
+    },
+    {
+      "SWITCH": "",
+      "EXAMPLE": "nmap 192.168.1.0/24",
+      "DESCRIPTION": "Scan using CIDR notation"
+    },
+    {
+      "SWITCH": "-iL",
+      "EXAMPLE": "nmap -iL targets.txt",
+      "DESCRIPTION": "Scan targets from a file"
+    },
+    {
+      "SWITCH": "-iR",
+      "EXAMPLE": "nmap -iR 100",
+      "DESCRIPTION": "Scan 100 random hosts"
+    },
+    {
+      "SWITCH": "-exclude",
+      "EXAMPLE": "nmap -exclude 192.168.1.1",
+      "DESCRIPTION": "Exclude listed hosts"
+    }
+  ],
+  "Nmap Scan Techniques": [
+    {
+      "SWITCH": "-sS",
+      "EXAMPLE": "nmap 192.168.1.1 -sS",
+      "DESCRIPTION": "TCP SYN port scan (Default)"
+    },
+    {
+      "SWITCH": "-sT",
+      "EXAMPLE": "nmap 192.168.1.1 -sT",
+      "DESCRIPTION": "TCP connect port scan (Default without root privilege)"
+    },
+    {
+      "SWITCH": "-sU",
+      "EXAMPLE": "nmap 192.168.1.1 -sU",
+      "DESCRIPTION": "UDP port scan"
+    },
+    {
+      "SWITCH": "-sA",
+      "EXAMPLE": "nmap 192.168.1.1 -sA",
+      "DESCRIPTION": "TCP ACK port scan"
+    },
+    {
+      "SWITCH": "-sW",
+      "EXAMPLE": "nmap 192.168.1.1 -sW",
+      "DESCRIPTION": "TCP Window port scan"
+    },
+    {
+      "SWITCH": "-sM",
+      "EXAMPLE": "nmap 192.168.1.1 -sM",
+      "DESCRIPTION": "TCP Maimon port scan"
+    }
+  ],
+  "Host Discovery": [
+    {
+      "SWITCH": "-sL",
+      "EXAMPLE": "nmap 192.168.1.1-3 -sL",
+      "DESCRIPTION": "No Scan. List targets only"
+    },
+    {
+      "SWITCH": "-sn",
+      "EXAMPLE": "nmap 192.168.1.1/24 -sn",
+      "DESCRIPTION": "Disable port scanning. Host discovery only."
+    },
+    {
+      "SWITCH": "-Pn",
+      "EXAMPLE": "nmap 192.168.1.1-5 -Pn",
+      "DESCRIPTION": "Disable host discovery. Port scan only."
+    },
+    {
+      "SWITCH": "-PS",
+      "EXAMPLE": "nmap 192.168.1.1-5 -PS22-25,80",
+      "DESCRIPTION": "TCP SYN discovery on port x. Port 80 by default"
+    },
+    {
+      "SWITCH": "-PA",
+      "EXAMPLE": "nmap 192.168.1.1-5 -PA22-25,80",
+      "DESCRIPTION": "TCP ACK discovery on port x. Port 80 by default"
+    },
+    {
+      "SWITCH": "-PU",
+      "EXAMPLE": "nmap 192.168.1.1-5 -PU53",
+      "DESCRIPTION": "UDP discovery on port x. Port 40125 by default"
+    },
+    {
+      "SWITCH": "-PR",
+      "EXAMPLE": "nmap 192.168.1.1-1/24 -PR",
+      "DESCRIPTION": "ARP discovery on local network"
+    },
+    {
+      "SWITCH": "-n",
+      "EXAMPLE": "nmap 192.168.1.1 -n",
+      "DESCRIPTION": "Never do DNS resolution"
+    }
+  ],
+  "Port Specification": [
+    {
+      "SWITCH": "-p",
+      "EXAMPLE": "nmap 192.168.1.1 -p 21",
+      "DESCRIPTION": "Port scan for port x"
+    },
+    {
+      "SWITCH": "-p",
+      "EXAMPLE": "nmap 192.168.1.1 -p 21-100",
+      "DESCRIPTION": "Port range"
+    },
+    {
+      "SWITCH": "-p",
+      "EXAMPLE": "nmap 192.168.1.1 -p U:53,T:21-25,80",
+      "DESCRIPTION": "Port scan multiple TCP and UDP ports"
+    },
+    {
+      "SWITCH": "-p",
+      "EXAMPLE": "nmap 192.168.1.1 -p-",
+      "DESCRIPTION": "Port scan all ports"
+    },
+    {
+      "SWITCH": "-p",
+      "EXAMPLE": "nmap 192.168.1.1 -p http,https",
+      "DESCRIPTION": "Port scan from service name"
+    },
+    {
+      "SWITCH": "-F",
+      "EXAMPLE": "nmap 192.168.1.1 -F",
+      "DESCRIPTION": "Fast port scan (100 ports)"
+    },
+    {
+      "SWITCH": "-top-ports",
+      "EXAMPLE": "nmap 192.168.1.1 -top-ports 2000",
+      "DESCRIPTION": "Port scan the top x ports"
+    },
+    {
+      "SWITCH": "-p-65535",
+      "EXAMPLE": "nmap 192.168.1.1 -p-65535",
+      "DESCRIPTION": "Leaving off initial port in range makes the scan start at port 1"
+    },
+    {
+      "SWITCH": "-p0-",
+      "EXAMPLE": "nmap 192.168.1.1 -p0-",
+      "DESCRIPTION": "Leaving off end port in range makes the scan go through to port 65535"
+    }
+  ],
+  "Service and Version Detection": [
+    {
+      "SWITCH": "-sV",
+      "EXAMPLE": "nmap 192.168.1.1 -sV",
+      "DESCRIPTION": "Attempts to determine the version of the service running on port"
+    },
+    {
+      "SWITCH": "-sV -version-intensity",
+      "EXAMPLE": "nmap 192.168.1.1 -sV -version-intensity 8",
+      "DESCRIPTION": "Intensity level 0 to 9. Higher number increases possibility of correctness"
+    },
+    {
+      "SWITCH": "-sV -version-light",
+      "EXAMPLE": "nmap 192.168.1.1 -sV -version-light",
+      "DESCRIPTION": "Enable light mode. Lower possibility of correctness. Faster"
+    },
+    {
+      "SWITCH": "-sV -version-all",
+      "EXAMPLE": "nmap 192.168.1.1 -sV -version-all",
+      "DESCRIPTION": "Enable intensity level 9. Higher possibility of correctness. Slower"
+    },
+    {
+      "SWITCH": "-A",
+      "EXAMPLE": "nmap 192.168.1.1 -A",
+      "DESCRIPTION": "Enables OS detection, version detection, script scanning, and traceroute"
+    }
+  ],
+  "OS Detection": [
+    {
+      "SWITCH": "-O",
+      "EXAMPLE": "nmap 192.168.1.1 -O",
+      "DESCRIPTION": "Remote OS detection using TCP/IP stack fingerprinting"
+    },
+    {
+      "SWITCH": "-O -osscan-limit",
+      "EXAMPLE": "nmap 192.168.1.1 -O -osscan-limit",
+      "DESCRIPTION": "If at least one open and one closed TCP port are not found it will not try OS detection against host"
+    },
+    {
+      "SWITCH": "-O -osscan-guess",
+      "EXAMPLE": "nmap 192.168.1.1 -O -osscan-guess",
+      "DESCRIPTION": "Makes Nmap guess more aggressively"
+    },
+    {
+      "SWITCH": "-O -max-os-tries",
+      "EXAMPLE": "nmap 192.168.1.1 -O -max-os-tries 1",
+      "DESCRIPTION": "Set the maximum number x of OS detection tries against a target"
+    },
+    {
+      "SWITCH": "-A",
+      "EXAMPLE": "nmap 192.168.1.1 -A",
+      "DESCRIPTION": "Enables OS detection, version detection, script scanning, and traceroute"
+    }
+  ],
+  "Timing and Performance": [
+    {
+      "SWITCH": "-T0",
+      "EXAMPLE": "nmap 192.168.1.1 -T0",
+      "DESCRIPTION": "Paranoid (0) Intrusion Detection System evasion"
+    },
+    {
+      "SWITCH": "-T1",
+      "EXAMPLE": "nmap 192.168.1.1 -T1",
+      "DESCRIPTION": "Sneaky (1) Intrusion Detection System evasion"
+    },
+    {
+      "SWITCH": "-T2",
+      "EXAMPLE": "nmap 192.168.1.1 -T2",
+      "DESCRIPTION": "Polite (2) slows down the scan to use less bandwidth and use less target machine resources"
+    },
+    {
+      "SWITCH": "-T3",
+      "EXAMPLE": "nmap 192.168.1.1 -T3",
+      "DESCRIPTION": "Normal (3) which is default speed"
+    },
+    {
+      "SWITCH": "-T4",
+      "EXAMPLE": "nmap 192.168.1.1 -T4",
+      "DESCRIPTION": "Aggressive (4) speeds scans; assumes you are on a reasonably fast and reliable network"
+    },
+    {
+      "SWITCH": "-T5",
+      "EXAMPLE": "nmap 192.168.1.1 -T5",
+      "DESCRIPTION": "Insane (5) speeds scan; assumes you are on an extraordinarily fast network"
+    }
+  ],
+  "Timing and Performance Switches": [
+    {
+      "SWITCH": "-host-timeout <time>",
+      "EXAMPLE INPUT": "1s; 4m; 2h",
+      "DESCRIPTION": "Give up on target after this long"
+    },
+    {
+      "SWITCH": "-min-rtt-timeout/max-rtt-timeout/initial-rtt-timeout <time>",
+      "EXAMPLE INPUT": "1s; 4m; 2h",
+      "DESCRIPTION": "Specifies probe round trip time"
+    },
+    {
+      "SWITCH": "-min-hostgroup/max-hostgroup <size>",
+      "EXAMPLE INPUT": "50; 1024",
+      "DESCRIPTION": "Parallel host scan group sizes"
+    },
+    {
+      "SWITCH": "-min-parallelism/max-parallelism <numprobes>",
+      "EXAMPLE INPUT": "10; 1",
+      "DESCRIPTION": "Probe parallelization"
+    },
+    {
+      "SWITCH": "-max-retries <tries>",
+      "EXAMPLE INPUT": "3",
+      "DESCRIPTION": "Specify the maximum number of port scan probe retransmissions"
+    },
+    {
+      "SWITCH": "-min-rate <number>",
+      "EXAMPLE INPUT": "100",
+      "DESCRIPTION": "Send packets no slower than <number> per second"
+    },
+    {
+      "SWITCH": "-max-rate <number>",
+      "EXAMPLE INPUT": "100",
+      "DESCRIPTION": "Send packets no faster than <number> per second"
+    }
+  ],
+  "NSE Scripts": [
+    {
+      "SWITCH": "-sC",
+      "EXAMPLE": "nmap 192.168.1.1 -sC",
+      "DESCRIPTION": "Scan with default NSE scripts. Considered useful for discovery and safe"
+    },
+    {
+      "SWITCH": "-script default",
+      "EXAMPLE": "nmap 192.168.1.1 -script default",
+      "DESCRIPTION": "Scan with default NSE scripts. Considered useful for discovery and safe"
+    },
+    {
+      "SWITCH": "-script",
+      "EXAMPLE": "nmap 192.168.1.1 -script=banner",
+      "DESCRIPTION": "Scan with a single script. Example banner"
+    },
+    {
+      "SWITCH": "-script",
+      "EXAMPLE": "nmap 192.168.1.1 -script=http*",
+      "DESCRIPTION": "Scan with a wildcard. Example http"
+    },
+    {
+      "SWITCH": "-script",
+      "EXAMPLE": "nmap 192.168.1.1 -script=http,banner",
+      "DESCRIPTION": "Scan with two scripts. Example http and banner"
+    },
+    {
+      "SWITCH": "-script",
+      "EXAMPLE": "nmap 192.168.1.1 -script \"not intrusive\"",
+      "DESCRIPTION": "Scan default, but remove intrusive scripts"
+    },
+    {
+      "SWITCH": "-script-args",
+      "EXAMPLE": "nmap -script snmp-sysdescr -script-args snmpcommunity=admin 192.168.1.1",
+      "DESCRIPTION": "NSE script with arguments"
+    }
+  ],
+  "Useful NSE Script Examples": [
+    {
+      "COMMAND": "nmap -Pn -script=http-sitemap-generator scanme.nmap.org",
+      "DESCRIPTION": "http site map generator"
+    },
+    {
+      "COMMAND": "nmap -n -Pn -p 80 -open -sV -vvv -script banner,http-title -iR 1000",
+      "DESCRIPTION": "Fast search for random web servers"
+    },
+    {
+      "COMMAND": "nmap -Pn -script=dns-brute domain.com",
+      "DESCRIPTION": "Brute forces DNS hostnames guessing subdomains"
+    },
+    {
+      "COMMAND": "nmap -n -Pn -vv -O -sV -script smb-enum*,smb-ls,smb-mbenum,smb-os-discovery,smb-s*,smb-vuln*,smbv2* -vv 192.168.1.1",
+      "DESCRIPTION": "Safe SMB scripts to run"
+    },
+    {
+      "COMMAND": "nmap -script whois* domain.com",
+      "DESCRIPTION": "Whois query"
+    },
+    {
+      "COMMAND": "nmap -p80 -script http-unsafe-output-escaping scanme.nmap.org",
+      "DESCRIPTION": "Detect cross site scripting vulnerabilities"
+    },
+    {
+      "COMMAND": "nmap -p80 -script http-sql-injection scanme.nmap.org",
+      "DESCRIPTION": "Check for SQL injections"
+    }
+  ],
+  "Firewall / IDS Evasion and Spoofing": [
+    {
+      "SWITCH": "-f",
+      "EXAMPLE": "nmap 192.168.1.1 -f",
+      "DESCRIPTION": "Requested scan (including ping scans) use tiny fragmented IP packets. Harder for packet filters"
+    },
+    {
+      "SWITCH": "-mtu",
+      "EXAMPLE": "nmap 192.168.1.1 -mtu 32",
+      "DESCRIPTION": "Set your own offset size"
+    },
+    {
+      "SWITCH": "-D",
+      "EXAMPLE": "nmap -D 192.168.1.101,192.168.1.102,192.168.1.103,192.168.1.23 192.168.1.1",
+      "DESCRIPTION": "Send scans from spoofed IPs"
+    },
+    {
+      "SWITCH": "-D",
+      "EXAMPLE": "nmap -D decoy-ip1,decoy-ip2,your-own-ip,decoy-ip3,decoy-ip4 remote-host-ip",
+      "DESCRIPTION": "Above example explained"
+    },
+    {
+      "SWITCH": "-S",
+      "EXAMPLE": "nmap -S www.microsoft.com www.facebook.com",
+      "DESCRIPTION": "Scan Facebook from Microsoft (-e eth0 -Pn may be required)"
+    },
+    {
+      "SWITCH": "-g",
+      "EXAMPLE": "nmap -g 53 192.168.1.1",
+      "DESCRIPTION": "Use given source port number"
+    },
+    {
+      "SWITCH": "-proxies",
+      "EXAMPLE": "nmap -proxies http://192.168.1.1:8080, http://192.168.1.2:8080 192.168.1.1",
+      "DESCRIPTION": "Relay connections through HTTP/SOCKS4 proxies"
+    },
+    {
+      "SWITCH": "-data-length",
+      "EXAMPLE": "nmap -data-length 200 192.168.1.1",
+      "DESCRIPTION": "Appends random data to sent packets"
+    },
+    {
+      "Example IDS Evasion command": "nmap -f -t 0 -n -Pn --data-length 200 -D 192.168.1.101,192.168.1.102,192.168.1.103,192.168.1.23 192.168.1.1"
+    }
+  ],
+  "Output": [
+    {
+      "SWITCH": "-oN",
+      "EXAMPLE": "nmap 192.168.1.1 -oN normal.file",
+      "DESCRIPTION": "Normal output to the file normal.file"
+    },
+    {
+      "SWITCH": "-oX",
+      "EXAMPLE": "nmap 192.168.1.1 -oX xml.file",
+      "DESCRIPTION": "XML output to the file xml.file"
+    },
+    {
+      "SWITCH": "-oG",
+      "EXAMPLE": "nmap 192.168.1.1 -oG grep.file",
+      "DESCRIPTION": "Grepable output to the file grep.file"
+    },
+    {
+      "SWITCH": "-oA",
+      "EXAMPLE": "nmap 192.168.1.1 -oA results",
+      "DESCRIPTION": "Output in the three major formats at once"
+    },
+    {
+      "SWITCH": "-oG -",
+      "EXAMPLE": "nmap 192.168.1.1 -oG -",
+      "DESCRIPTION": "Grepable output to screen. -oN -, -oX - also usable"
+    },
+    {
+      "SWITCH": "-append-output",
+      "EXAMPLE": "nmap 192.168.1.1 -oN file.file -append-output",
+      "DESCRIPTION": "Append a scan to a previous scan file"
+    },
+    {
+      "SWITCH": "-v",
+      "EXAMPLE": "nmap 192.168.1.1 -v",
+      "DESCRIPTION": "Increase the verbosity level (use -vv or more for greater effect)"
+    },
+    {
+      "SWITCH": "-d",
+      "EXAMPLE": "nmap 192.168.1.1 -d",
+      "DESCRIPTION": "Increase debugging level (use -dd or more for greater effect)"
+    },
+    {
+      "SWITCH": "-reason",
+      "EXAMPLE": "nmap 192.168.1.1 -reason",
+      "DESCRIPTION": "Display the reason a port is in a particular state, same output as -vv"
+    },
+    {
+      "SWITCH": "-open",
+      "EXAMPLE": "nmap 192.168.1.1 -open",
+      "DESCRIPTION": "Only show open (or possibly open) ports"
+    },
+    {
+      "SWITCH": "-packet-trace",
+      "EXAMPLE": "nmap 192.168.1.1 -T4 -packet-trace",
+      "DESCRIPTION": "Show all packets sent and received"
+    },
+    {
+      "SWITCH": "-iflist",
+      "EXAMPLE": "nmap -iflist",
+      "DESCRIPTION": "Shows the host interfaces and routes"
+    },
+    {
+      "SWITCH": "-resume",
+      "EXAMPLE": "nmap -resume results.file",
+      "DESCRIPTION": "Resume a scan"
+    }
+  ],
+  "Helpful Nmap Output Examples": [
+    {
+      "COMMAND": "nmap -p80 -sV -oG - -open 192.168.1.1/24 | grep open",
+      "DESCRIPTION": "Scan for web servers and grep to show which IPs are running web servers"
+    },
+    {
+      "COMMAND": "nmap -iR 10 -n -oX out.xml | grep \"Nmap\" | cut -d \" \" -f5 > live-hosts.txt",
+      "DESCRIPTION": "Generate a list of the IPs of live hosts"
+    },
+    {
+      "COMMAND": "nmap -iR 10 -n -oX out2.xml | grep \"Nmap\" | cut -d \" \" -f5 >> live-hosts.txt",
+      "DESCRIPTION": "Append IP to the list of live hosts"
+    },
+    {
+      "COMMAND": "ndiff scanl.xml scan2.xml",
+      "DESCRIPTION": "Compare output from nmap using the ndiff"
+    },
+    {
+      "COMMAND": "xsltproc nmap.xml -o nmap.html",
+      "DESCRIPTION": "Convert nmap xml files to html files"
+    },
+    {
+      "COMMAND": "grep \" open \" results.nmap | sed -r 's/ +/ /g' | sort | uniq -c | sort -rn | less",
+      "DESCRIPTION": "Reverse sorted list of how often ports turn up"
+    }
+  ],
+  "Miscellaneous Nmap Flags": [
+    {
+      "SWITCH": "-6",
+      "EXAMPLE": "nmap -6 2607:f0d0:1002:51::4",
+      "DESCRIPTION": "Enable IPv6 scanning"
+    },
+    {
+      "SWITCH": "-h",
+      "EXAMPLE": "nmap -h",
+      "DESCRIPTION": "nmap help screen"
+    }
+  ],
+  "Other Useful Nmap Commands": [
+    {
+      "COMMAND": "nmap -iR 10 -PS22-25,80,113,1050,35000 -v -sn",
+      "DESCRIPTION": "Discovery only on ports x, no port scan"
+    },
+    {
+      "COMMAND": "nmap 192.168.1.1-1/24 -PR -sn -vv",
+      "DESCRIPTION": "Arp discovery only on local network, no port scan"
+    },
+    {
+      "COMMAND": "nmap -iR 10 -sn -traceroute",
+      "DESCRIPTION": "Traceroute to random targets, no port scan"
+    },
+    {
+      "COMMAND": "nmap 192.168.1.1-50 -sL -dns-server 192.168.1.1",
+      "DESCRIPTION": "Query the Internal DNS for hosts, list targets only"
+    },
+    {
+      "COMMAND": "nmap 192.168.1.1 --packet-trace",
+      "DESCRIPTION": "Show the details of the packets that are sent and received during a scan and capture the traffic"
+    }
+  ],
+  "script_categories": [
+    {
+      "category": "auth",
+      "description": "These scripts deal with authentication credentials (or bypassing them) on the target system.",
+      "examples": ["x11-access", "ftp-anon", "oracle-enum-users"]
+    },
+    {
+      "category": "broadcast",
+      "description": "Scripts that typically do discovery of hosts not listed on the command line by broadcasting on the local network.",
+      "examples": []
+    },
+    {
+      "category": "brute",
+      "description": "Scripts that use brute force attacks to guess authentication credentials of a remote server.",
+      "examples": ["http-brute", "oracle-brute", "snmp-brute"]
+    },
+    {
+      "category": "default",
+      "description": "The default set of scripts run when using the -sC or -A options.",
+      "examples": ["identd-owners", "http-auth", "ftp-anon"]
+    },
+    {
+      "category": "discovery",
+      "description": "Scripts that try to actively discover more about the network.",
+      "examples": ["html-title", "smb-enum-shares", "snmp-sysdescr"]
+    },
+    {
+      "category": "dos",
+      "description": "Scripts that may cause a denial of service.",
+      "examples": []
+    },
+    {
+      "category": "exploit",
+      "description": "Scripts that aim to actively exploit some vulnerability.",
+      "examples": ["jdwp-exec", "http-shellshock"]
+    },
+    {
+      "category": "external",
+      "description": "Scripts that may send data to a third-party database or other network resource.",
+      "examples": ["whois-ip"]
+    },
+    {
+      "category": "fuzzer",
+      "description": "Scripts designed to send server software unexpected or randomized fields in each packet.",
+      "examples": ["dns-fuzz"]
+    },
+    {
+      "category": "intrusive",
+      "description": "Scripts that have high risks of crashing the target system, using up resources, or being perceived as malicious.",
+      "examples": ["http-open-proxy", "snmp-brute"]
+    },
+    {
+      "category": "malware",
+      "description": "Scripts that test whether the target platform is infected by malware or backdoors.",
+      "examples": ["smtp-strangeport", "auth-spoof"]
+    },
+    {
+      "category": "safe",
+      "description": "Scripts that weren't designed to crash services, use large amounts of resources, or exploit security holes.",
+      "examples": ["ssh-hostkey", "html-title"]
+    },
+    {
+      "category": "version",
+      "description": "Scripts that are an extension to the version detection feature.",
+      "examples": ["skypev2-version", "pptp-version", "iax2-version"]
+    },
+    {
+      "category": "vuln",
+      "description": "Scripts that check for specific known vulnerabilities.",
+      "examples": ["realvnc-auth-bypass", "afp-path-vuln"]
+    }
+  ]
+}

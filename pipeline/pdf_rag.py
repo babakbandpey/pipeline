@@ -30,7 +30,7 @@ class PdfRAG(Retrieval):
 
 
     def _load_documents(self):
-        """Loads Python documents from the filesystem."""
+        """Loads PDF documents from the filesystem."""
         if not self.path or not os.path.exists(self.path):
             raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
 
