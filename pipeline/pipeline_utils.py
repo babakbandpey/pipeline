@@ -9,6 +9,7 @@ import argparse
 from typing import Union
 from .config import OPENAI_API_KEY
 from .rag_factory import RAGFactory
+from .retrieval import Retrieval
 
 class PipelineUtils():
     """ Utility class for the pipeline. """
@@ -261,7 +262,7 @@ class PipelineUtils():
 
 
     @staticmethod
-    def create_chatbot(args) -> RAGFactory:
+    def create_chatbot(args) -> Retrieval:
         """
         Create the chatbot.
         :param args: The arguments.

@@ -19,6 +19,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
+from .config import LOGGING_LEVEL
 
 
 class PipelineConfig:
@@ -29,7 +30,7 @@ class PipelineConfig:
         self.logger = None
         self.session_id = None
 
-        self.setup_logging()
+        self.setup_logging(LOGGING_LEVEL)
         self.generate_session_id()
 
 
@@ -81,7 +82,7 @@ class PipelineSetup(PipelineConfig):
         self.setup_chat_prompt()
 
 
-    def setup_chat_prompt(self, system_template: str = None):
+    def setup_chat_prompt(self, system_template: str = None, output_type: str = None):
         """
         Sets up the chat prompt for the chatbot.
         params: system_template: The system template to use.
@@ -92,6 +93,10 @@ class PipelineSetup(PipelineConfig):
             Answer all questions to the best of your ability."""
         elif not isinstance(system_template, str):
             raise ValueError("system_template must be a string")
+
+        if output_type:
+            if output_type.upper() in ["TEXT", "JSON", 'PYTHON']:
+                system_template += f' Retun the response as {output_type}.'
 
         prompt = ChatPromptTemplate.from_messages(
             [

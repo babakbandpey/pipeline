@@ -6,12 +6,18 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Load all environment variables from the .env file
 load_dotenv()
+
+
+# Configure logging
+LOGGING_LEVEL = logging.INFO
+
+logging.basicConfig(
+    level=LOGGING_LEVEL,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Access the variables
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
