@@ -19,7 +19,7 @@ class Retrieval(Pipeline):
     Pipeline for a chatbot that retrieves documents and answers questions
     based on the retrieved documents.
     """
-    def setup_chat_prompt(self, system_template=None):
+    def setup_chat_prompt(self, system_template=None, output_type=None):
         """
         Sets up the prompt for the chatbot.
         params: system_template: The system template to use.
@@ -46,7 +46,7 @@ class Retrieval(Pipeline):
             </context>
             """
 
-        super().setup_chat_prompt(system_template)
+        super().setup_chat_prompt(system_template, output_type)
 
 
     def setup_chain(self, search_type=None, search_kwargs=None):

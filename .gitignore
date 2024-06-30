@@ -1,9 +1,9 @@
 env/
+env1/
 **/*.pyc
 **/__pycache__/
 **/chat_history*.md
 .env
 pipeline.egg-info/
-tests/data/*.*
 diff.txt
 commit_message.txt

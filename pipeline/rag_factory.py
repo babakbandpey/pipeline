@@ -1,23 +1,15 @@
 # file: pipeline/rag_factory.py
 
 import importlib
+from .retrieval import Retrieval
 
-class_mapping = {
-    'chat': 'Chatbot',
-    'txt': 'TxtRAG',
-    'py': 'PyRAG',
-    'web': 'WebRAG',
-    'pdf': 'PdfRAG',
-    'json': 'JsonRAG'
-}
-
-module_mapping = {
-    'chat': 'pipeline.chatbot',
-    'txt': 'pipeline.txt_rag',
-    'py': 'pipeline.py_rag',
-    'web': 'pipeline.web_rag',
-    'pdf': 'pipeline.pdf_rag',
-    'json': 'pipeline.json_rag'
+rag_mapping = {
+    'chat': ('pipeline.chatbot', 'Chatbot'),
+    'txt': ('pipeline.txt_rag', 'TxtRAG'),
+    'py': ('pipeline.py_rag', 'PyRAG'),
+    'web': ('pipeline.web_rag', 'WebRAG'),
+    'pdf': ('pipeline.pdf_rag', 'PdfRAG'),
+    'json': ('pipeline.json_rag', 'JsonRAG')
 }
 
 class RAGFactory:
@@ -26,7 +18,7 @@ class RAGFactory:
     """
 
     @staticmethod
-    def get_rag_class(_type: str = 'txt', **kwargs):
+    def get_rag_class(_type: str = 'txt', **kwargs) -> Retrieval:
         """
         Get the RAG class based on the specified type.
 
@@ -41,8 +33,7 @@ class RAGFactory:
             ValueError: If no RAG class is found for the specified type.
         """
 
-        class_name = class_mapping.get(_type)
-        module_name = module_mapping.get(_type)
+        module_name, class_name = rag_mapping.get(_type, (None, None))
 
         if not class_name or not module_name:
             raise ValueError(f"No RAG class found for type: {_type}")
@@ -51,5 +42,4 @@ class RAGFactory:
         module = importlib.import_module(module_name)
         # Get the class from the module
         rag_class = getattr(module, class_name)
-
         return rag_class(**kwargs)
