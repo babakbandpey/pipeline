@@ -1,0 +1,212 @@
+{
+    "python nmap library documentation": {
+        "description": "This script uses the nmap library to scan ports on a given host and retrieve information about the host and its services.",
+        "parameters": {
+            "ip_address": "The IP address of the host to scan.",
+            "port_range": "The range of ports to scan (e.g., '22-443')."
+        },
+        "steps": [
+            {
+                "step": 1,
+                "code": "import nmap",
+                "description": "Import the nmap library."
+            },
+            {
+                "step": 2,
+                "code": "nm = nmap.PortScanner()",
+                "description": "Create an instance of the PortScanner class."
+            },
+            {
+                "step": 3,
+                "code": "nm.scan(ip_address, port_range)",
+                "description": "Scan the host specified by `ip_address` for ports in the range specified by `port_range`."
+            },
+            {
+                "step": 4,
+                "code": "nm.command_line()",
+                "description": "Get the nmap command line used for the scan.",
+                "output": "Example: 'nmap -oX - -p 22-443 -sV 127.0.0.1'"
+            },
+            {
+                "step": 5,
+                "code": "nm.scaninfo()",
+                "description": "Get scan information.",
+                "output": {
+                    "tcp": {
+                        "services": "Example: 22-443",
+                        "method": "connect"
+                    }
+                }
+            },
+            {
+                "step": 6,
+                "code": "nm.all_hosts()",
+                "description": "Get a list of all scanned hosts.",
+                "output": "Example: ['127.0.0.1']"
+            },
+            {
+                "step": 7,
+                "code": "nm[ip_address].hostname()",
+                "description": "Get the hostname of the scanned host.",
+                "output": "Example: 'localhost'"
+            },
+            {
+                "step": 8,
+                "code": "nm[ip_address].state()",
+                "description": "Get the state of the scanned host.",
+                "output": "Example: 'up'"
+            },
+            {
+                "step": 9,
+                "code": "nm[ip_address].all_protocols()",
+                "description": "Get all protocols used by the scanned host.",
+                "output": "Example: ['tcp']"
+            },
+            {
+                "step": 10,
+                "code": "nm[ip_address]['tcp'].keys()",
+                "description": "Get all TCP ports of the scanned host.",
+                "output": "Example: [80, 25, 443, 22, 111]"
+            },
+            {
+                "step": 11,
+                "code": "nm[ip_address].has_tcp(22)",
+                "description": "Check if port 22 is open on the scanned host.",
+                "output": "Example: true"
+            },
+            {
+                "step": 12,
+                "code": "nm[ip_address].has_tcp(23)",
+                "description": "Check if port 23 is open on the scanned host.",
+                "output": "Example: false"
+            },
+            {
+                "step": 13,
+                "code": "nm[ip_address]['tcp'][22]",
+                "description": "Get information about port 22 on the scanned host.",
+                "output": {
+                    "state": "open",
+                    "reason": "syn-ack",
+                    "name": "ssh"
+                }
+            },
+            {
+                "step": 14,
+                "code": "nm[ip_address].tcp(22)",
+                "description": "Get information about port 22 using the tcp method.",
+                "output": {
+                    "state": "open",
+                    "reason": "syn-ack",
+                    "name": "ssh"
+                }
+            },
+            {
+                "step": 15,
+                "code": "nm[ip_address]['tcp'][22]['state']",
+                "description": "Get the state of port 22 on the scanned host.",
+                "output": "Example: 'open'"
+            },
+            {
+                "step": 16,
+                "code": "for host in nm.all_hosts():\n    print('----------------------------------------------------')\n    print('Host : %s (%s)' % (host, nm[host].hostname()))\n    print('State : %s' % nm[host].state())\n    for proto in nm[host].all_protocols():\n        print('----------')\n        print('Protocol : %s' % proto)\n\n        lport = nm[host][proto].keys()\n        lport.sort()\n        for port in lport:\n            print ('port : %s\tstate : %s' % (port, nm[host][proto][port]['state']))",
+                "description": "Iterate over all scanned hosts and print their information, including state and open ports.",
+                "output": "Example: ----------------------------------------------------\nHost : 127.0.0.1 (localhost)\nState : up\n----------\nProtocol : tcp\nport : 22   state : open\nport : 25   state : open\nport : 80   state : open\nport : 111  state : open\nport : 443  state : open"
+            },
+            {
+                "step": 17,
+                "code": "nm.csv()",
+                "description": "Get the scan results in CSV format.",
+                "output": "Example: host;protocol;port;name;state;product;extrainfo;reason;version;conf\n127.0.0.1;tcp;22;ssh;open;OpenSSH;protocol 2.0;syn-ack;5.9p1 Debian 5ubuntu1;10\n127.0.0.1;tcp;25;smtp;open;Exim smtpd;;syn-ack;4.76;10\n127.0.0.1;tcp;53;domain;open;dnsmasq;;syn-ack;2.59;10\n127.0.0.1;tcp;80;http;open;Apache httpd;(Ubuntu);syn-ack;2.2.22;10\n127.0.0.1;tcp;111;rpcbind;open;;;syn-ack;;10\n127.0.0.1;tcp;139;netbios-ssn;open;Samba smbd;workgroup: WORKGROUP;syn-ack;3.X;10\n127.0.0.1;tcp;443;;open;;;syn-ack;;"
+            }
+        ]
+    },
+    "nmap async and progressive scan": {
+        "description": "This script uses the nmap library to perform asynchronous and progressive scanning of hosts.",
+        "parameters": {
+            "ip_range": "The range of IP addresses to scan (e.g., '192.168.1.0/30').",
+            "scan_arguments": "The nmap scan arguments (e.g., '-sP').",
+            "callback_function": "The callback function to process scan results.",
+            "progressive_ip_range": "The range of IP addresses to scan progressively (e.g., '127.0.0.1/24').",
+            "port_range": "The range of ports to scan progressively (e.g., '22-25')."
+        },
+        "steps": [
+            {
+                "step": 1,
+                "code": "import nmap",
+                "description": "Import the nmap library."
+            },
+            {
+                "step": 2,
+                "code": "nma = nmap.PortScannerAsync()",
+                "description": "Create an instance of the PortScannerAsync class."
+            },
+            {
+                "step": 3,
+                "code": "def callback_result(host, scan_result):\n    print('------------------')\n    print(host, scan_result)",
+                "description": "Define the callback function to process scan results."
+            },
+            {
+                "step": 4,
+                "code": "nma.scan(hosts=ip_range, arguments=scan_arguments, callback=callback_function)",
+                "description": "Start the asynchronous scan with the specified IP range and scan arguments."
+            },
+            {
+                "step": 5,
+                "code": "while nma.still_scanning():\n    print(\"Waiting >>>\")\n    nma.wait(2)",
+                "description": "Wait for the asynchronous scan to complete, printing a waiting message every 2 seconds."
+            },
+            {
+                "step": 6,
+                "code": "nm = nmap.PortScannerYield()",
+                "description": "Create an instance of the PortScannerYield class for progressive scanning."
+            },
+            {
+                "step": 7,
+                "code": "for progressive_result in nm.scan(progressive_ip_range, port_range):\n    print(progressive_result)",
+                "description": "Perform a progressive scan over the specified IP and port ranges, printing each result as it is received."
+            }
+        ],
+        "example_outputs": [
+            {
+                "description": "Example output for the asynchronous scan:",
+                "output": "192.168.1.1 {'nmap': {'scanstats': {'uphosts': '1', 'timestr': 'Mon Jun  7 11:31:11 2010', 'downhosts': '0', 'totalhosts': '1', 'elapsed': '0.43'}, 'scaninfo': {}, 'command_line': 'nmap -oX - -sP 192.168.1.1'}, 'scan': {'192.168.1.1': {'status': {'state': 'up', 'reason': 'arp-response'}, 'hostname': 'neufbox'}}}\n------------------\n192.168.1.2 {'nmap': {'scanstats': {'uphosts': '0', 'timestr': 'Mon Jun  7 11:31:11 2010', 'downhosts': '1', 'totalhosts': '1', 'elapsed': '0.29'}, 'scaninfo': {}, 'command_line': 'nmap -oX - -sP 192.168.1.2'}, 'scan': {'192.168.1.2': {'status': {'state': 'down', 'reason': 'no-response'}, 'hostname': ''}}}\n------------------\n192.168.1.3 {'nmap': {'scanstats': {'uphosts': '0', 'timestr': 'Mon Jun  7 11:31:11 2010', 'downhosts': '1', 'totalhosts': '1', 'elapsed': '0.29'}, 'scaninfo': {}, 'command_line': 'nmap -oX - -sP 192.168.1.3'}, 'scan': {'192.168.1.3': {'status': {'state': 'down', 'reason': 'no-response'}, 'hostname': ''}}}"
+            },
+            {
+                "description": "Example output for the progressive scan:",
+                "output": "{'nmap': {'scanstats': {'uphosts': '1', 'timestr': 'Mon Jun  7 11:31:11 2010', 'downhosts': '0', 'totalhosts': '1', 'elapsed': '0.43'}, 'scaninfo': {}, 'command_line': 'nmap -oX - -p 22-25 -sV 127.0.0.1/24'}, 'scan': {'127.0.0.1': {'status': {'state': 'up', 'reason': 'syn-ack'}, 'hostname': 'localhost'}}}"
+            }
+        ]
+    },
+    "nmap_scan_with_timeout": {
+        "description": "This script uses the nmap library to perform a scan with a specified timeout.",
+        "parameters": {
+            "ip_address": "The IP address of the host to scan (e.g., '127.0.0.1').",
+            "port_range": "The range of ports to scan (e.g., '22-40043').",
+            "timeout": "The timeout value for the scan in seconds (e.g., 10)."
+        },
+        "steps": [
+            {
+                "step": 1,
+                "code": "import nmap",
+                "description": "Import the nmap library."
+            },
+            {
+                "step": 2,
+                "code": "nm = nmap.PortScanner()",
+                "description": "Create an instance of the PortScanner class."
+            },
+            {
+                "step": 3,
+                "code": "nm.scan(ip_address, port_range, timeout=timeout)",
+                "description": "Perform a scan on the specified IP address and port range with the given timeout.",
+                "output": "PortScannerTimeout: 'Timeout from nmap process'"
+            }
+        ],
+        "example_outputs": [
+            {
+                "description": "Example output for a scan with a timeout:",
+                "output": "PortScannerTimeout: 'Timeout from nmap process'"
+            }
+        ]
+    }
+}

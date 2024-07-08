@@ -60,6 +60,76 @@ class ChatbotUtils:
 
 
     @staticmethod
+    def extract_commands_json(text):
+        """
+        Extracts the JSON object that contains 'commands' and 'command' keys from the given text.
+
+        Args:
+        text (str): The text containing JSON data.
+
+        Returns:
+        dict: The extracted JSON object as a Python dictionary.
+        """
+        json_pattern = re.compile(r'\{.*?\}', re.DOTALL)
+
+        # Find all matches in the text
+        matches = json_pattern.findall(text)
+        print(matches)
+        print(len(matches))
+        # Join matches to form complete JSON objects
+        json_candidates = []
+        current_json = ""
+        for match in matches:
+            current_json += match
+            try:
+                json_data = json.loads(current_json)
+                json_candidates.append(json_data)
+                current_json = ""
+            except json.JSONDecodeError:
+                # Continue appending until we get a valid JSON
+                continue
+        print(json_candidates)
+        for json_data in json_candidates:
+            # Check if the JSON object contains the specific keys
+            if 'commands' in json_data and isinstance(json_data['commands'], list):
+                for command in json_data['commands']:
+                    if 'command' in command:
+                        return json_data
+
+        raise ValueError("No JSON object with the required keys found in the response")
+
+
+
+
+    @staticmethod
+    def extract_json(response):
+        """
+        Extracts and returns the JSON part from the given response string.
+
+        Args:
+        response (str): The response string containing JSON data.
+
+        Returns:
+        dict: The extracted JSON data as a Python dictionary.
+        """
+        # Regular expression to find JSON-like content
+        json_pattern = re.compile(r'\{(?:[^{}]|(?R))*\}')
+
+        # Search for the JSON part in the response
+        match = json_pattern.search(response)
+
+        if match:
+            json_str = match.group(0)
+            try:
+                json_data = json.loads(json_str)
+                return json_data
+            except json.JSONDecodeError:
+                raise ValueError("Extracted data is not valid JSON")
+        else:
+            raise ValueError("No JSON data found in the response")
+
+
+    @staticmethod
     def parse_json(response) -> Union[dict, str]:
         """
         Parse the JSON response and return the JSON object.
