@@ -21,11 +21,13 @@ logger = logging.getLogger(__name__)
 
 # Access the variables
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+AZURE_OPENAI_ENDPOINT = os.environ.get('AZURE_OPENAI_ENDPOINT')
+AZURE_OPENAI_API_KEY_1 = os.environ.get('AZURE_OPENAI_API_KEY_1')
 
 if OPENAI_API_KEY is None:
     logger.error("OPENAI_API_KEY is not set in the environment variables.")
-
-logger.info("OPENAI_API_KEY successfully loaded.")
+else:
+    logger.info("OPENAI_API_KEY successfully loaded.")
 
 # Ensure the .env file is not included in version control
 # Add the following line to your .gitignore file:
