@@ -85,6 +85,26 @@ class PipelineUtils():
 			required=False,
 			help="The prompt",
 			default="Say something useful about the content")
+
+        parser.add_argument("--system_prompt_template",
+            type=str ,
+            required=False,
+            help="The system prompt template",
+            default=None)
+
+        parser.add_argument("--output_type",
+            type=str ,
+            required=False,
+            help="The output type",
+            default='text',
+            choices=[
+                "text",
+                "json",
+                'python',
+                'xml',
+                'html',
+                'markdown'
+            ])
         return parser.parse_args()
 
 
@@ -210,7 +230,7 @@ class PipelineUtils():
         :return: The base URL and the API key.
         """
 
-        if args.model == "llaama3":
+        if args.model == "llama3":
             return "http://localhost:11434", None
         if args.model == "phi3":
             return "http://localhost:11434", None
@@ -259,7 +279,10 @@ class PipelineUtils():
             "collection_name": collection_name,
             "git_url": git_url,
             "path": path,
-            "url": url
+            "url": url,
+            "prompt": args.prompt,
+            "system_prompt_template": args.system_prompt_template,
+            "output_type": args.output_type
         }
 
 

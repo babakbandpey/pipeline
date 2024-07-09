@@ -528,7 +528,11 @@
     {
       "category": "auth",
       "description": "These scripts deal with authentication credentials (or bypassing them) on the target system.",
-      "examples": ["x11-access", "ftp-anon", "oracle-enum-users"]
+      "examples": [
+        "x11-access",
+        "ftp-anon",
+        "oracle-enum-users"
+      ]
     },
     {
       "category": "broadcast",
@@ -538,17 +542,29 @@
     {
       "category": "brute",
       "description": "Scripts that use brute force attacks to guess authentication credentials of a remote server.",
-      "examples": ["http-brute", "oracle-brute", "snmp-brute"]
+      "examples": [
+        "http-brute",
+        "oracle-brute",
+        "snmp-brute"
+      ]
     },
     {
       "category": "default",
       "description": "The default set of scripts run when using the -sC or -A options.",
-      "examples": ["identd-owners", "http-auth", "ftp-anon"]
+      "examples": [
+        "identd-owners",
+        "http-auth",
+        "ftp-anon"
+      ]
     },
     {
       "category": "discovery",
       "description": "Scripts that try to actively discover more about the network.",
-      "examples": ["html-title", "smb-enum-shares", "snmp-sysdescr"]
+      "examples": [
+        "html-title",
+        "smb-enum-shares",
+        "snmp-sysdescr"
+      ]
     },
     {
       "category": "dos",
@@ -558,42 +574,65 @@
     {
       "category": "exploit",
       "description": "Scripts that aim to actively exploit some vulnerability.",
-      "examples": ["jdwp-exec", "http-shellshock"]
+      "examples": [
+        "jdwp-exec",
+        "http-shellshock"
+      ]
     },
     {
       "category": "external",
       "description": "Scripts that may send data to a third-party database or other network resource.",
-      "examples": ["whois-ip"]
+      "examples": [
+        "whois-ip"
+      ]
     },
     {
       "category": "fuzzer",
       "description": "Scripts designed to send server software unexpected or randomized fields in each packet.",
-      "examples": ["dns-fuzz"]
+      "examples": [
+        "dns-fuzz"
+      ]
     },
     {
       "category": "intrusive",
       "description": "Scripts that have high risks of crashing the target system, using up resources, or being perceived as malicious.",
-      "examples": ["http-open-proxy", "snmp-brute"]
+      "examples": [
+        "http-open-proxy",
+        "snmp-brute"
+      ]
     },
     {
       "category": "malware",
       "description": "Scripts that test whether the target platform is infected by malware or backdoors.",
-      "examples": ["smtp-strangeport", "auth-spoof"]
+      "examples": [
+        "smtp-strangeport",
+        "auth-spoof"
+      ]
     },
     {
       "category": "safe",
       "description": "Scripts that weren't designed to crash services, use large amounts of resources, or exploit security holes.",
-      "examples": ["ssh-hostkey", "html-title"]
+      "examples": [
+        "ssh-hostkey",
+        "html-title"
+      ]
     },
     {
       "category": "version",
       "description": "Scripts that are an extension to the version detection feature.",
-      "examples": ["skypev2-version", "pptp-version", "iax2-version"]
+      "examples": [
+        "skypev2-version",
+        "pptp-version",
+        "iax2-version"
+      ]
     },
     {
       "category": "vuln",
       "description": "Scripts that check for specific known vulnerabilities.",
-      "examples": ["realvnc-auth-bypass", "afp-path-vuln"]
+      "examples": [
+        "realvnc-auth-bypass",
+        "afp-path-vuln"
+      ]
     }
   ]
 }
