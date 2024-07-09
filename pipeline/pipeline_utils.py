@@ -7,7 +7,7 @@ import os
 import sys
 import argparse
 from typing import Union
-from .config import OPENAI_API_KEY
+from .config import OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
 from .rag_factory import RAGFactory
 from .retrieval import Retrieval
 
@@ -236,6 +236,8 @@ class PipelineUtils():
             return "http://localhost:11434", None
         if "gpt" in args.model:
             return "https://api.openai.com/v1/", args.openai_api_key
+        if "azure" in args.model:
+            return AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
 
         return "http://localhost:1234/v1", None
 

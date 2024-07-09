@@ -7,3 +7,4 @@ env1/
 pipeline.egg-info/
 diff.txt
 commit_message.txt
+policies/
