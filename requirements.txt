@@ -17,6 +17,7 @@ chromadb
 click
 colorama
 coloredlogs
+cryptography
 dataclasses-json
 Deprecated
 distro

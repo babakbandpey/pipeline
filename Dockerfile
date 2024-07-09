@@ -11,7 +11,10 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Git and other dependencies
-RUN apt-get update -y && apt-get install -y git && apt-get clean
+RUN RUN apt-get update -y && apt-get install -y git && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install pipeline as package
 RUN pip install -e .
+
+# Start an interactive shell
+CMD ["bash"]

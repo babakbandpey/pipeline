@@ -1,0 +1,9 @@
+version: '3'
+services:
+  pipeline:
+    build: .
+    volumes:
+      - ./:/app
+    command: ["bash"]
+    stdin_open: true
+    tty: true
