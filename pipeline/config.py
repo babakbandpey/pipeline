@@ -4,18 +4,16 @@ This file contains the configuration for the project.
 """
 import os
 import logging
-from dotenv import load_dotenv
-
-# Load all environment variables from the .env file
-load_dotenv()
-
-import os
 import base64
 from getpass import getpass
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+# Load all environment variables from the .env file
+load_dotenv()
 
 # Configure logging
 LOGGING_LEVEL = logging.INFO
@@ -48,22 +46,30 @@ def decrypt(encrypted_text: str, passphrase: str) -> str:
         return None
 
 
-passphrase = getpass("Enter passphrase to decrypt .env: ")
+passphrase = getpass("Enter passphrase to decrypt .env, or 0 if the .env is not encrypted: ")
 
-if passphrase is None:
-    logger.error("Passphrase is required to decrypt the .env file.")
-    exit()
-
-# Access the variables
-OPENAI_API_KEY = decrypt(os.environ.get('OPENAI_PLATFORM_API_KEY'), passphrase)
-AZURE_OPENAI_ENDPOINT = decrypt(os.environ.get('AZURE_OPENAI_ENDPOINT'), passphrase)
-AZURE_OPENAI_API_KEY_1 = decrypt(os.environ.get('AZURE_OPENAI_API_KEY_1'), passphrase)
-
-if OPENAI_API_KEY is None:
-    logger.error("OPENAI_API_KEY is not set in the environment variables.")
+if passphrase == '0':
+    OPENAI_API_KEY = os.environ.get('OPENAI_PLATFORM_API_KEY')
+    AZURE_OPENAI_ENDPOINT = os.environ.get('AZURE_OPENAI_ENDPOINT')
+    AZURE_OPENAI_API_KEY_1 = os.environ.get('AZURE_OPENAI_API_KEY_1')
+    logger.info("The .env file is not encrypted.")
 else:
-    logger.info("OPENAI_API_KEY successfully loaded.")
+
+    if passphrase is None:
+        logger.error("Passphrase is required to decrypt the .env file.")
+        exit()
+
+    # Access the variables
+    OPENAI_API_KEY = decrypt(os.environ.get('OPENAI_PLATFORM_API_KEY'), passphrase)
+    AZURE_OPENAI_ENDPOINT = decrypt(os.environ.get('AZURE_OPENAI_ENDPOINT'), passphrase)
+    AZURE_OPENAI_API_KEY_1 = decrypt(os.environ.get('AZURE_OPENAI_API_KEY_1'), passphrase)
+
+    if OPENAI_API_KEY is None:
+        logger.error("OPENAI_API_KEY is not set in the environment variables.")
+    else:
+        logger.info("OPENAI_API_KEY successfully loaded.")
 
 # Ensure the .env file is not included in version control
 # Add the following line to your .gitignore file:
 # .env
+# or encrypt the .env file using the env_encryptor.py script

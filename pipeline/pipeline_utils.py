@@ -4,12 +4,14 @@ Shared utility functions.
 
 import datetime
 import os
+import secrets
 import sys
 import argparse
-from typing import Union
 from .config import OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
 from .rag_factory import RAGFactory
 from .retrieval import Retrieval
+from .chatbot_utils import logger
+
 
 class PipelineUtils():
     """ Utility class for the pipeline. """
@@ -65,34 +67,43 @@ class PipelineUtils():
             default=None
         )
 
-        parser.add_argument("--git_url",
+        parser.add_argument(
+            "--git_url",
 			type=str,
 			required=False,
 			help="The url to a git repo to be used with the type PythonRAG",
 			default=None)
-        parser.add_argument("--openai_api_key",
+
+        parser.add_argument(
+            "--openai_api_key",
 			type=str,
 			required=False,
 			default=OPENAI_API_KEY,
 			help="OpenAI API key.")
-        parser.add_argument("--example",
+
+        parser.add_argument(
+            "--example",
 			action="store_true" ,
 			required=False,
 			help="Showing some examples of how to run the script",
 			default=None)
-        parser.add_argument("--prompt",
+
+        parser.add_argument(
+            "--prompt",
 			type=str ,
 			required=False,
 			help="The prompt",
 			default="Say something useful about the content")
 
-        parser.add_argument("--system_prompt_template",
+        parser.add_argument(
+            "--system_prompt_template",
             type=str ,
             required=False,
             help="The system prompt template",
             default=None)
 
-        parser.add_argument("--output_type",
+        parser.add_argument(
+            "--output_type",
             type=str ,
             required=False,
             help="The output type",
@@ -105,6 +116,14 @@ class PipelineUtils():
                 'html',
                 'markdown'
             ])
+
+        parser.add_argument(
+            "--collection_name",
+            type=str,
+            required=False,
+            help="The collection name",
+            default=secrets.token_hex(16))
+
         return parser.parse_args()
 
 
@@ -129,15 +148,15 @@ class PipelineUtils():
             with open(path, "w", encoding='utf-8') as file:
                 for index, message in enumerate(chatbot.chat_history.messages):
                     file.write(f"{index + 1}. {message}\n")
-            print(f"Chat history saved to {filename}")
+            logger.info("Chat history saved to %s", filename)
 
 
         def default_action():
-            print("\n\n++Chatbot: ", chatbot.invoke(prompt))
+            logger.info("\n\n++Chatbot: %s", chatbot.invoke(prompt))
 
 
         def exit_chat():
-            print("\n\nGoodbye!\n\n")
+            logger.info("\n\nGoodbye!\n\n")
             sys.exit(0)
 
 
@@ -147,11 +166,11 @@ class PipelineUtils():
             :return: True if the chat history is shown, False otherwise.
             """
             if not chatbot.chat_history.messages:
-                print("No chat history.")
+                logger.info("No chat history.")
                 return False
 
             for index, message in enumerate(chatbot.chat_history.messages):
-                print(f"{index + 1}. {message}")
+                logger.info("%d. %s", index + 1, message)
 
             return True
 
@@ -168,11 +187,11 @@ class PipelineUtils():
 
                 if number:
                     if chatbot.modify_chat_history(number - 1):
-                        print("Message deleted.")
+                        logger.info("Message deleted.")
                     else:
-                        print("Invalid number provided.")
+                        logger.info("Invalid number provided.")
                 else:
-                    print("Invalid number provided.")
+                    logger.info("Invalid number provided.")
 
 
         def print_commands_help():
@@ -230,17 +249,25 @@ class PipelineUtils():
         :return: The base URL and the API key.
         """
 
+        url_endpoint = None
+        openai_api_key = None
+
         if args.model == "llama3":
-            return "http://localhost:11434", None
+            url_endpoint, openai_api_key = "http://localhost:11434", None
         if args.model == "phi3":
-            return "http://localhost:11434", None
+            url_endpoint, openai_api_key = "http://localhost:11434", None
         if "gpt" in args.model:
-            return "https://api.openai.com/v1/", args.openai_api_key
+            url_endpoint, openai_api_key = "https://api.openai.com/v1/", args.openai_api_key
         if "azure" in args.model:
-            return AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
+            url_endpoint, openai_api_key = AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
+        if "lmstudio" in args.model:
+            url_endpoint, openai_api_key = "http://localhost:1234/v1", "lm-studio"
 
-        return "http://localhost:1234/v1", None
+        if url_endpoint is None:
+            logger.error("Model not found for %s.", args.model)
+            sys.exit(1)
 
+        return url_endpoint, openai_api_key
 
     @staticmethod
     def get_kwargs(args: argparse.Namespace) -> dict:

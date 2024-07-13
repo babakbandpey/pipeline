@@ -4,6 +4,9 @@ services:
     build: .
     volumes:
       - ./:/app
+    network_mode: "host"
+    ports:
+      - "1234:1234"
     command: ["bash"]
     stdin_open: true
     tty: true

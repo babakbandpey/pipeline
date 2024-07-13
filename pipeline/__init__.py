@@ -14,6 +14,8 @@ from .json_rag import JsonRAG
 from .pipeline_utils import PipelineUtils
 from .file_utils import FileUtils
 from .chatbot_utils import ChatbotUtils
+from .chatbot_utils import logger
+from .nmap_scanner import NmapScanner
 
 __all__ = [
     'OPENAI_API_KEY',
@@ -26,6 +28,8 @@ __all__ = [
     'PyRAG',
     'PdfRAG',
     'JsonRAG',
+    'logger',
+    'NmapScanner'
 ]
 
 __version__ = '0.5.0'

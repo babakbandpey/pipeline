@@ -169,7 +169,6 @@ class PipelineSetup(PipelineConfig):
         params: model: The name of the model to use.
         returns: The initialized Ollama object.
         """
-
         try:
             if self.openai_api_key:
                 # OpenAI
