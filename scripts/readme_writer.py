@@ -1,8 +1,5 @@
 """
-This script scans the codebase for any potential issues
-and reports them back to the user.
-Except for the env directory, it will check all files in the
-For now it only scans the python files.
+This script scans the codebase and tries to write a README.md file
 """
 
 import os
@@ -23,7 +20,7 @@ def main():
         files = FileUtils.get_files()
 
     # create an output file with timestamp .md file and write the response to it
-    output_file = f"./history/code_guard_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    output_file = f"./history/README{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
 
     for file in files:
 
