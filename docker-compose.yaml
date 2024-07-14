@@ -1,4 +1,3 @@
-version: '3'
 services:
   pipeline:
     build: .
@@ -7,6 +6,6 @@ services:
     network_mode: "host"
     ports:
       - "1234:1234"
-    command: ["bash"]
+    command: ["sh", "-c", "service postgresql start && msfconsole"]
     stdin_open: true
     tty: true

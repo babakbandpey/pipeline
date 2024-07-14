@@ -13,11 +13,32 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install pipeline as package
 RUN pip install -e .
 
-# Install Git and other dependencies
-RUN apt-get update
-RUN apt-get install -y git
-RUN apt-get install -y nmap
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Update and install dependencies
+RUN apt-get update && \
+    apt-get install -y git nmap sqlmap whatweb dirb gobuster hydra-gtk curl gnupg2 postgresql libgmp-dev zlib1g-dev libpcap-dev build-essential libreadline-dev libssl-dev libpq-dev libsqlite3-dev libffi-dev libyaml-dev libxslt1-dev libxml2-dev libcurl4-openssl-dev software-properties-common ruby ruby-dev ncat hashcat john unzip && \
+    apt-get clean
 
-# Start an interactive shell
+# Install Metasploit Framework
+RUN curl -o /tmp/msfinstall https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb && \
+    chmod 755 /tmp/msfinstall && \
+    /tmp/msfinstall && \
+    rm /tmp/msfinstall
+
+# Install Nikto
+RUN git clone https://github.com/sullo/nikto.git /opt/nikto && \
+    ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
+
+# Install WPScan
+RUN gem install wpscan
+
+# Download and unpack wordlists
+RUN curl -L -o /tmp/wordlists.zip https://github.com/kkrypt0nn/wordlists/archive/refs/heads/master.zip && \
+    unzip /tmp/wordlists.zip -d /tmp && \
+    mv /tmp/wordlists-main /usr/share/wordlists && \
+    rm /tmp/wordlists.zip
+
+# Expose the necessary port for Metasploit
+EXPOSE 3790
+
+# Set the entrypoint to an interactive shell
 CMD ["bash"]
