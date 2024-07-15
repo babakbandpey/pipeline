@@ -333,10 +333,11 @@ class PipelineUtils():
         if args.type == "txt":
             return RAGFactory.get_rag_class("txt", **kwargs)
 
-        if args.type == "python":
+        if args.type == "py":
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             exclude_patterns = [
                 "env/**/*",
+                "env1/**/*",
                 "venv/**/*",
                 ".git/**/*",
                 ".idea/**/*",

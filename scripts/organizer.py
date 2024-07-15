@@ -55,7 +55,7 @@ def organize_content(args):
         topics = analyzer(chatbot, prompt)
 
         for i, area in enumerate(topics['areas_covered']):
-            FileUtils.write_to_file(output_file, f"## {i + 1} - {area}\n\n")
+            FileUtils.append_to_file(output_file, f"## {i + 1} - {area}\n\n")
 
             prompt= f"""
             List the very relevant requirements needed to comply with '{area}'.
@@ -66,9 +66,9 @@ def organize_content(args):
                 for z, requirement in enumerate(requirements[key]):
                     output = ChatbotUtils.process_json_response(requirement)
                     if output.startswith(" - "):
-                        FileUtils.write_to_file(output_file, f"{output}\n")
+                        FileUtils.append_to_file(output_file, f"{output}\n")
                     else:
-                        FileUtils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n")
+                        FileUtils.append_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n")
 
 
         # Get the purpose of the policies and the requirements

@@ -1,55 +1,85 @@
-"""This module contains utility functions for file operations."""
-
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from .chatbot_utils import logger
 
 class FileUtils:
     """Utility class for file operations."""
 
-
     @staticmethod
-    def get_files() -> list:
-        """Get all python files in the codebase."""
+    def get_files(root_path=".", extension=".py", exclude_dirs=["env", ".git"]) -> list:
+        """Get all files with the specified extension in the codebase, excluding certain directories."""
         files = []
-        for root, _, filenames in os.walk("."):
-            for filename in filenames:
-                if filename.endswith(".py") and "env" not in root and '.git' not in root:
-                    files.append(os.path.join(root, filename))
+        for root, _, filenames in os.walk(root_path):
+            if any(exclude in root for exclude in exclude_dirs):
+                continue
+            files.extend(os.path.join(root, f) for f in filenames if f.endswith(extension))
         return files
 
+    @staticmethod
+    def write_to_file(file_path, content, mode='w', encoding='utf-8'):
+        """
+        Write or append content to a file.
+        params: file_path: The path to the output file.
+        params: content: The content to write to the file.
+        params: mode: The mode to open the file ('w' for write, 'a' for append, 'x' for exclusive creation).
+        params: encoding: The encoding to use for writing the file.
+        Supported modes:
+            'w': Write (overwrite) the file. If the file exists, it will be truncated to zero length.
+            'a': Append to the file. If the file does not exist, it will be created.
+            'x': Exclusive creation. The file will be created, and an error will be raised if it already exists.
+        """
+        if mode not in ['w', 'a', 'x']:
+            raise ValueError("Unsupported mode. Use 'w' for write, 'a' for append, or 'x' for exclusive creation.")
+
+        try:
+            with open(file_path, mode, encoding=encoding) as file:
+                file.write(content)
+                if mode == 'a':
+                    file.write("\n\n")
+            logger.info("File written successfully: %s", file_path)
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
 
     @staticmethod
-    def write_to_file(output_file, response):
-        """Write the response to a file."""
-        with open(output_file, "a", encoding='utf-8') as file:
-            file.write(response)
-            file.write("\n\n")
-
+    def read_file(file_path, encoding='utf-8') -> str:
+        """
+        Read content from a file.
+        params: file_path: The path to the file.
+        params: encoding: The encoding to use for reading the file.
+        returns: The content of the file as a string.
+        """
+        try:
+            with open(file_path, 'r', encoding=encoding) as file:
+                content = file.read()
+            logger.info("File read successfully: %s", file_path)
+            return content
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
+            return ""
+        except Exception as e:
+            logger.error("Error: %s", e)
+            return ""
 
     @staticmethod
-    def prepend_to_file(file_path, text):
-        """Prepend text to a file."""
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-        with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(text)
-            file.write(content)
-
-
-    @staticmethod
-    def get_files_from_path(path, file_extension=".py") -> list:
-        """Get a list of Python files from the given path."""
-        if not os.path.exists(path):
-            logging.error("Error: The path '%s' does not exist.", path)
-            return []
-
-        if os.path.isfile(path):
-            return [path]
-
-        return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(file_extension)]
-
+    def prepend_to_file(file_path, content, encoding='utf-8'):
+        """
+        Prepend content to a file.
+        params: file_path: The path to the file.
+        params: content: The content to prepend to the file.
+        params: encoding: The encoding to use for writing the file.
+        """
+        try:
+            if not os.path.exists(file_path):
+                with open(file_path, 'w', encoding=encoding) as file:
+                    file.write(content)
+                logger.info("File created and content written successfully: %s", file_path)
+            else:
+                with open(file_path, 'r+', encoding=encoding) as file:
+                    file_content = file.read()
+                    file.seek(0, 0)
+                    file.write(content + file_content)
+                logger.info("Content prepended successfully: %s", file_path)
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
 
     @staticmethod
     def clean_non_ascii_bytes(file_path, replacement_byte=b' '):
@@ -58,17 +88,15 @@ class FileUtils:
         params: file_path: The path to the text file.
         params: replacement_byte: The byte to replace non-ASCII bytes with.
         """
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        cleaned_data = bytearray()
-        for byte in data:
-            if byte > 0x7F:
-                cleaned_data.extend(replacement_byte)
-            else:
-                cleaned_data.append(byte)
-        with open(file_path, 'wb') as file:
-            file.write(cleaned_data)
-
+        try:
+            with open(file_path, 'rb') as file:
+                data = file.read()
+            cleaned_data = bytearray(replacement_byte if byte > 0x7F else byte for byte in data)
+            with open(file_path, 'wb') as file:
+                file.write(cleaned_data)
+            logger.info("Non-ASCII bytes cleaned from file: %s", file_path)
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
 
     @staticmethod
     def find_non_ascii_bytes(file_path):
@@ -77,7 +105,11 @@ class FileUtils:
         params: file_path: The path to the text file.
         returns: A list of tuples containing the position and byte value of non-ASCII bytes.
         """
-        with open(file_path, 'rb') as file:
-            data = file.read()
-        non_ascii_positions = [(i, byte) for i, byte in enumerate(data) if byte > 0x7F]
-        return non_ascii_positions
+        try:
+            with open(file_path, 'rb') as file:
+                data = file.read()
+            non_ascii_positions = [(i, byte) for i, byte in enumerate(data) if byte > 0x7F]
+            return non_ascii_positions
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
+            return []

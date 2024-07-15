@@ -30,7 +30,7 @@ def create_script(path:str, prompt:str):
     system_template = " ".join(system_template)
 
     args = PipelineUtils.get_args()
-    args.type = 'python'
+    args.type = 'py'
     args.path = path
     llm = PipelineUtils.create_chatbot(args)
     llm.setup_chat_prompt(system_template=system_template, output_type='python')

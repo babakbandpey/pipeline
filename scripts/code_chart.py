@@ -17,7 +17,7 @@ def main():
     """Main function to scan the codebase."""
 
     args = PipelineUtils.get_args()
-    args.type = "python"
+    args.type = "py"
 
     if args.path:
         files = FileUtils.get_files_from_path(args.path, ".py")
@@ -35,20 +35,20 @@ def main():
         chatbot = PipelineUtils.create_chatbot(args)
 
         logging.info("Analyzing %s...", file)
-        FileUtils.write_to_file(output_file, f"# Analyzing {file}...")
+        FileUtils.append_to_file(output_file, f"# Analyzing {file}...")
 
         response = chatbot.invoke(
             "Analyze the code in the content and write a description of what the code does. "
         )
 
-        FileUtils.write_to_file(output_file, response)
+        FileUtils.append_to_file(output_file, response)
 
         response = chatbot.invoke(
             "Write a description of the code in the content, " +
             "which could be used in creating a detailed flow chart ."
         )
 
-        FileUtils.write_to_file(output_file, response)
+        FileUtils.append_to_file(output_file, response)
 
         chatbot.delete_collection()
         chatbot.clear_chat_history()
