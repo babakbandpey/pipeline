@@ -1,75 +1,8 @@
 """ This module contains utility functions for the chatbot classes. """
 import json
-import logging
 import re
-import inspect
-import os
-from logging import Logger
 from typing import Union
-
-
-def get_importing_file_name():
-    """ Get the name of the file that imports this module. """
-    stack = inspect.stack()
-    # stack[1] is the caller of the current function
-    # stack[2] is the caller of the caller of the current function
-    frame = stack[2]
-    module = inspect.getmodule(frame[0])
-    if module:
-        return os.path.basename(module.__file__)
-    return None
-
-class ColoredFormatter(logging.Formatter):
-    """
-    A custom logging formatter that adds color to log messages based on the log level.
-
-    Attributes:
-        COLORS (dict): A dictionary mapping log levels to their corresponding color codes.
-        RESET (str): The color code to reset the color back to the default.
-
-    Methods:
-        format(record): Formats the log record by adding color to the log message based on the log level.
-    """
-
-    COLORS = {
-        'DEBUG': '\033[36m',    # Cyan
-        'INFO': '\033[32m',     # Green
-        'WARNING': '\033[33m',  # Yellow
-        'ERROR': '\033[31m',    # Red
-        'CRITICAL': '\033[1;31m' # Bold Red
-    }
-    RESET = '\033[0m'  # Reset color
-
-    def format(self, record):
-        """
-        Formats the log record by adding color to the log message based on the log level.
-
-        Args:
-            record (logging.LogRecord): The log record to be formatted.
-
-        Returns:
-            str: The formatted log message with color added.
-        """
-        # Get the original message
-        message = super().format(record)
-
-        # Apply color based on the log level
-        color = self.COLORS.get(record.levelname, self.RESET)
-        message = f"{color}{record.levelname}: {message}{self.RESET}"
-
-        return message
-
-# Create a handler
-handler = logging.StreamHandler()
-# Set the custom formatter
-formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
-handler.setFormatter(formatter)
-
-# Set up the root logger
-logger = logging.getLogger(get_importing_file_name())
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-
+from .logger import logger
 
 class ChatbotUtils:
     """Utility class for the chatbot."""
@@ -102,8 +35,8 @@ class ChatbotUtils:
             text = ":".join(parts)
             return json.loads(text)
         except json.JSONDecodeError as e:
-            logging.error("Line: %s", text)
-            logging.error("JSONDecodeError: %s", e)
+            logger.error("Line: %s", text)
+            logger.error("JSONDecodeError: %s", e)
             return None
 
 
@@ -147,8 +80,6 @@ class ChatbotUtils:
         raise ValueError("No JSON object with the required keys found in the response")
 
 
-
-
     @staticmethod
     def extract_json(response):
         """
@@ -171,8 +102,8 @@ class ChatbotUtils:
             try:
                 json_data = json.loads(json_str)
                 return json_data
-            except json.JSONDecodeError:
-                raise ValueError("Extracted data is not valid JSON")
+            except json.JSONDecodeError as exc:
+                raise ValueError("Extracted data is not valid JSON") from exc
         else:
             raise ValueError("No JSON data found in the response")
 
@@ -193,10 +124,10 @@ class ChatbotUtils:
             response_json = json.loads(response)
             return response_json
         except json.JSONDecodeError:
-            # logging.error("Error: The response is not a valid JSON.")
+            # logger.error("Error: The response is not a valid JSON.")
             return response
         except ValueError:
-            # logging.error("Error: The response is not a valid JSON.")
+            # logger.error("Error: The response is not a valid JSON.")
             return response
 
 
@@ -249,11 +180,3 @@ class ChatbotUtils:
             r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return re.match(regex, url) is not None
-
-    @staticmethod
-    def logger() -> Logger:
-        """
-        Set up logging
-        :return: logging
-        """
-        return logger

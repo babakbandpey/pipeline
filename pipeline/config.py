@@ -25,6 +25,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def derive_key(passphrase: str, salt: bytes) -> bytes:
+    """
+    Derive a key from the passphrase and salt.
+    params: passphrase: The passphrase to derive the key from.
+    params: salt: The salt to use in the key derivation.
+    returns: The derived key.
+    """
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,

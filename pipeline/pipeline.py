@@ -19,17 +19,15 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
-from .config import LOGGING_LEVEL
+from .logger import logger
 
 
 class PipelineConfig:
     """ Configuration for the pipeline. """
     def __init__(self, **kwargs):
         self._kwargs = kwargs
-        self.logger = None
         self.session_id = None
-
-        self.setup_logging(LOGGING_LEVEL)
+        self.logger = logger
         self.generate_session_id()
 
 
@@ -49,15 +47,6 @@ class PipelineConfig:
         )
 
         return None
-
-
-    def setup_logging(self, level=logging.INFO):
-        """
-        Sets up logging for the pipeline.
-        params: level: The logging level to use.
-        """
-        logging.basicConfig(level=level)
-        self.logger = logging.getLogger(__name__)
 
 
     def generate_session_id(self):

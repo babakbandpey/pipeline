@@ -1,12 +1,21 @@
 import os
-from .chatbot_utils import logger
+from .logger import logger
 
 class FileUtils:
     """Utility class for file operations."""
 
     @staticmethod
-    def get_files(root_path=".", extension=".py", exclude_dirs=["env", ".git"]) -> list:
-        """Get all files with the specified extension in the codebase, excluding certain directories."""
+    def get_files(root_path=".", extension=".py", exclude_dirs=None) -> list:
+        """
+        Get all files with the specified extension in the codebase, excluding certain directories.
+        params: root_path: The root directory to start searching for files.
+        params: extension: The file extension to search for.
+        params: exclude_dirs: Directories to exclude from the search.
+        """
+        
+        if exclude_dirs is None:
+            exclude_dirs = [".env", ".git"]
+
         files = []
         for root, _, filenames in os.walk(root_path):
             if any(exclude in root for exclude in exclude_dirs):

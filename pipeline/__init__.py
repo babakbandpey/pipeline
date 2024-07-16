@@ -14,7 +14,7 @@ from .json_rag import JsonRAG
 from .pipeline_utils import PipelineUtils
 from .file_utils import FileUtils
 from .chatbot_utils import ChatbotUtils
-from .chatbot_utils import logger
+from .logger import logger
 from .nmap_scanner import NmapScanner
 
 __all__ = [

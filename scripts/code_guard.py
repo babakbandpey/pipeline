@@ -18,7 +18,7 @@ def main():
     args.type = "py"
 
     if args.path:
-        files = FileUtils.get_files_from_path(args.path, ".py")
+        files = FileUtils.get_files(args.path, ".py")
     else:
         files = FileUtils.get_files()
 
@@ -36,26 +36,26 @@ def main():
         logger.debug(chatbot.documents)
 
         logger.info("Analyzing %s...", file)
-        FileUtils.append_to_file(output_file, f"# Analyzing {file}...")
+        FileUtils.write_to_file(output_file, f"# Analyzing {file}...", mode="a")
 
         response = chatbot.invoke(
             "Analyze the code in content for potential issues and security vulnerabilities. " +
             "Be precise about the line number and the issue."
         )
 
-        FileUtils.append_to_file(output_file, response)
+        FileUtils.write_to_file(output_file, response, mode="a")
 
         response = chatbot.invoke(
             f"Suggest improvements for the code in '{file}'."
         )
 
-        FileUtils.append_to_file(output_file, response)
+        FileUtils.write_to_file(output_file, response, mode="a")
 
         response = chatbot.invoke(
             f"Score the code in '{file}' on a scale of 1 to 10."
         )
 
-        FileUtils.append_to_file(output_file, response)
+        FileUtils.write_to_file(output_file, response, mode="a")
 
         chatbot.delete_collection()
         chatbot.clear_chat_history()
