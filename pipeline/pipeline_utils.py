@@ -265,6 +265,7 @@ class PipelineUtils():
 
         if url_endpoint is None:
             logger.error("Model not found for %s.", args.model)
+            logger.info("Models: llama3, phi3, gpt-4o, gpt-4, gpt-3, azure, lmstudio")
             sys.exit(1)
 
         return url_endpoint, openai_api_key
@@ -360,4 +361,6 @@ class PipelineUtils():
         if args.type == "json":
             return RAGFactory.get_rag_class("json", **kwargs)
 
-        return None
+        logger.error("Type not found for %s.", args.type)
+        logger.info("Types: chat, txt, py, web, pdf, json")
+        raise ValueError(f"Type not found for {args.type}.")

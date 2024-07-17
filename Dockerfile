@@ -37,6 +37,36 @@ RUN curl -L -o /tmp/wordlists.zip https://github.com/kkrypt0nn/wordlists/archive
     mv /tmp/wordlists-main /usr/share/wordlists && \
     rm /tmp/wordlists.zip
 
+RUN apt-get install -y fish && \
+    chsh -s /usr/bin/fish
+
+RUN apt-get install -y pylint
+
+# Clone the SearchSploit repository
+RUN git clone -b main https://gitlab.com/exploit-database/exploitdb.git /opt/exploit-database
+
+# Create a symbolic link to make SearchSploit accessible
+RUN ln -sf /opt/exploit-database/searchsploit /usr/local/bin/searchsploit
+
+# Copy the resource file to the home directory
+RUN cp -n /opt/exploit-database/.searchsploit_rc ~/
+
+# Modify the searchsploit script to remove sudo and fix paths
+RUN sed -i 's/sudo //g' /opt/exploit-database/searchsploit
+RUN sed -i 's|/opt/exploitdb|/opt/exploit-database|g' /opt/exploit-database/searchsploit
+
+# Ensure the correct branch is used in the searchsploit script
+RUN sed -i 's|master|main|g' /opt/exploit-database/searchsploit
+
+# Set environment variables if needed
+ENV PATH="/usr/local/bin:$PATH"
+
+# Update SearchSploit
+RUN searchsploit -u || echo "Update process completed with errors"
+
+# Installing net-tools
+RUN apt-get install -y net-tools
+
 # Expose the necessary port for Metasploit
 EXPOSE 3790
 

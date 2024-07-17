@@ -1,6 +1,11 @@
+"""
+This is the main file that runs the Nmap Port Scanner Project.
+"""
+
 import datetime
-import subprocess
+import json
 import secrets
+import sys
 from pprint import pprint
 from pipeline import PipelineUtils, ChatbotUtils, logger, NmapScanner
 
@@ -10,10 +15,8 @@ def main():
     The main function.
     """
     # write the date and the time of the conversation
-    print("\n\nWelcome to the chatbot!\n\n")
-    print("Today's date and time: ", datetime.datetime.now(), "\n\n")
-
-    next_prompt = None
+    print("\n\nWelcome to the Nmap Port Scanner Project!\n\n")
+    print("Today's date and time: ", datetime.datetime.now(), " GMT.\n\n")
 
     args = PipelineUtils.get_args()
     args.type = "json"
@@ -25,29 +28,22 @@ def main():
         # '192.168.56.4'
     ]
 
-    args.system_prompt_template = " ".join((
-        "You are a network administrator who has to use the nmap to scan the network.",
-        "You need to write the namp shell commands that scans the ports of the provided IP addresses."
-        "Format your response as a JSON object that contains a list of commands for scanning IP addresses using nmap."
-        "The JSON object should have a key commands which maps to a list of objects."
-        "Each object should contain two keys: ip_address with the IP address as its value, and command with the corresponding nmap command as its value."
-        "each command must start with nmap followed by the IP address and the necessary flags to scan the ports of the IP address."
-        "Format your resposne as JSON object.",
-        "The json object must only have two keys: commands and command.",
-        "Each command must start with nmap followed by the IP address and the necessary flags to scan the ports of the IP address.",
-        "Omit any other text in the response.",
-    ))
+    args.system_prompt_template = (
+        "You are a professional peneteration testing expert."
+        "You must scan host of provided IP addresses for vulnerabilies."
+        "You must find ways to exploit these vulnerabilities."
+        "If methods fails, you must suggest alternative methods."
+        "You must write shell commands that perform these tasks."
+        "Format your response as a JSON object containing a list of commands."
+        "The JSON object should have a key 'commands' which maps to a list of objects."
+        "Exclude any additional text or information from your response."
+    )
 
     args.output_type = "json"
-
+    args.collection_name = secrets.token_hex(16)
     chatbot = PipelineUtils.create_chatbot(args)
 
     try:
-        # while True:
-        #     next_prompt = PipelineUtils.handle_command(
-        #         input("\n** Enter your message: ") if next_prompt is None else next_prompt,
-        #         chatbot
-        #     )
         for ip_address in ip_addresses:
             response = chatbot.invoke(f"""
             Write the one command for namp scanning of all the ports -p-, services, version of the services and the OS type and version on Ip Addresses : ({ip_address}).
@@ -70,6 +66,11 @@ def main():
 
             pprint(response_json)
 
+            # Zero out the path so that the chatbot doesn't try to read from it
+            args.path = None
+            # changing to simple chatbot
+            args.type = "chat"
+
             for command in response_json['commands']:
                 logger.info(command['command'])
                 # command['firewall'] = True
@@ -83,27 +84,98 @@ def main():
                 pprint(nmap_scanner.get_output())
                 pprint(result)
 
+
+
                 for port in result['ports']:
-                    pprint(port)
-                    info = f"[Port: {port['port']}, Service: {port['service']}, Version: {port['version']}, OS: {result['os_info']}]"
+                    options = {
+                        "IP Address": ip_address,
+                        "Port Number": port['port'],
+                        "Service Name": port['service'],
+                        "Version": port['version'],
+                        "OS": result['os_info']
+                    }
+                    logger.info(options)
+                    info = json.dumps(options, indent=4)
+
                     args.collection_name = secrets.token_hex(16)
                     _chatbot = PipelineUtils.create_chatbot(args)
                     response = _chatbot.invoke(f"""
-                    Suggest a pentesting method for {info}. respond in pure JSON format.
-                    The reponse should resemble the following format:
+                    What will be the best way to exploit the vulnerability on the target?
+                    Information about the target: {info}.
+                    Sugget necessary tools and commands to exploit the vulnerability.
+                    Respond in pure JSON format.
+                    The response should follow this format:
                     {{
-                        "suggestion": {{
-                            "method": "The suggested pentesting method"
-                            "description": "The description of the suggested pentesting method",
-                            "tools": ["Tool 1", "Tool 2", "Tool 3"]
-                            "examples": ["list of real life examples of using the tool on Port: '{port['port']}', Service: '{port['service']}', Version: '{port['version']}', OS: '{result['os_info']}'", ...]
-                        }}
+                        "commands": [
+                            {{
+                                "method": ....,
+                                "description": ....,
+                                "tool": ....,
+                                "command": ...
+                            }},
+                            {{
+                                "method": ....,
+                                "description": ....,
+                                "tool": ....,
+                                "command": ...
+                            }},
+                            etc...
+                        ]
                     }}
-                    each example must be a dict with the key "command": "The command used to run the tool"
                     """)
                     pprint(ChatbotUtils.parse_json(response))
+                    _chatbot.clear_chat_history()
+                    sys.exit()
+                    continue
 
-                    _chatbot.delete_collection()
+
+
+                    args.collection_name = secrets.token_hex(16)
+                    _chatbot = PipelineUtils.create_chatbot(args)
+                    response = _chatbot.invoke(f"""
+                    You must suggest vulnerability proof of concept method.
+                    Information about the target: {info}.
+                    The installed tools at the moment are:
+                    - nmap
+                    - sqlmap
+                    - whatweb
+                    - dirb
+                    - gobuster
+                    - hydra
+                    - ncat
+                    - hashcat
+                    - john
+                    - searchsploit
+                    You must choose the tools which are relevant to target.
+                    You may suggest tools that are not in the list but still relevant to target.
+                    Respond in pure JSON format.
+                    The JSON object should have a key 'commands' which maps to a list of objects.
+                    Each object should have the following keys:
+                    - 'method': The suggested pentesting method
+                    - 'description': A description of the suggested pentesting method
+                    - 'tool': The tool used to perform the pentesting method
+                    - 'command': The tool command including the parameters and target and any other necessary information
+                    The response should follow this format:
+                    {{
+                        "commands": [
+                            {{
+                                "method": ....,
+                                "description": ....,
+                                "tool": ....,
+                                "command": ...
+                            }},
+                            {{
+                                "method": ....,
+                                "description": ....,
+                                "tool": ....,
+                                "command": ...
+                            }},
+                            etc...
+                        ]
+                    }}
+                    """)
+                    pprint(ChatbotUtils.parse_json(response))
+                    _chatbot.clear_chat_history()
 
     except KeyboardInterrupt:
         print("\n\nGoodbye!\n\n")
