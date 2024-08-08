@@ -32,7 +32,7 @@ class PipelineUtils():
             type=str,
             required=False,
             help="Model to use.",
-            default="gpt-4o"
+            default="gpt-4o-mini"
         )
 
         parser.add_argument(
