@@ -51,7 +51,10 @@ def organize_content(args):
         logger.info("............................................")
         # Get absolute path of the file
 
-        prompt = "Analyze the content and make a list of which areas it covers."
+        prompt = (
+            "Analyze content and make a prioritized list of which areas it covers "
+            "based on what is important for Cybersecurity, Business Continuity and Disaster Recovery."
+        )
         topics = analyzer(chatbot, prompt)
 
         for i, area in enumerate(topics['areas_covered']):
@@ -60,6 +63,9 @@ def organize_content(args):
             prompt= f"""
             List the very relevant requirements needed to comply with '{area}'.
             If the requirements are repeated, there should be a good reason for mentioning them again.
+            The list should be prioritized based on the importance of the requirements.
+            If the requirement is essential, it should star with a +.
+            If the requirement is nice to have, it should start with a %.
             """
             requirements = analyzer(chatbot, prompt)
             for key in requirements:
@@ -98,6 +104,8 @@ def main():
     if args.type not in ['pdf', 'txt']:
         logger.error("The type should be 'pdf' or 'txt'.")
         raise ValueError("The type should be 'pdf' or 'txt'.")
+
+    print(args)
 
     try:
         organize_content(args)

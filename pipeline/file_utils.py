@@ -12,9 +12,13 @@ class FileUtils:
         params: extension: The file extension to search for.
         params: exclude_dirs: Directories to exclude from the search.
         """
-        
+
         if exclude_dirs is None:
             exclude_dirs = [".env", ".git"]
+
+        # controlling if the root_path is a file
+        if os.path.isfile(root_path):
+            return [root_path]
 
         files = []
         for root, _, filenames in os.walk(root_path):
