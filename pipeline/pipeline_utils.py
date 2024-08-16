@@ -124,6 +124,11 @@ class PipelineUtils():
             help="The collection name",
             default=secrets.token_hex(16))
 
+        parser.add_argument(
+            '--create-questionnaire',
+            action='store_true',
+            help='Create an questionnaire based on the created')
+
         return parser.parse_args()
 
 
@@ -321,6 +326,12 @@ class PipelineUtils():
         :param args: The arguments.
         :return: The chatbot.
         """
+
+        if not args:
+            args = PipelineUtils.get_args()
+            args.type = "chat"
+
+        logger.debug("Arguments: %s", args)
 
         if args.example:
             PipelineUtils.print_examples()
