@@ -129,6 +129,12 @@ class PipelineUtils():
             action='store_true',
             help='Create an questionnaire based on the created')
 
+        parser.add_argument(
+            '--remove-duplicates',
+            action='store_true',
+            help='Remove duplicates from the text')
+
+
         return parser.parse_args()
 
 

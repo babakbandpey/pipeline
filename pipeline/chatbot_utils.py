@@ -160,6 +160,35 @@ class ChatbotUtils:
             # If the response is not JSON, return the original text
             return response
 
+    @staticmethod
+    def split_camel_case(key):
+        """Convert camelCase to space-separated words."""
+        return re.sub(r'(?<!^)(?=[A-Z])', ' ', key)
+
+
+    @staticmethod
+    def json_to_md(data, depth=1):
+        """Recursively converts JSON to markdown format"""
+        md_text = ""
+
+        if isinstance(data, dict):
+            for key, value in data.items():
+                # Replace underscores with spaces and create a heading
+                heading = key.replace("_", " ")
+                heading = ChatbotUtils.split_camel_case(heading)
+                md_text += f"{'#' * depth} {heading}\n\n"
+                # Recursively process nested dictionaries
+                md_text += ChatbotUtils.json_to_md(value, depth + 1)
+        elif isinstance(data, list):
+            for item in data:
+                # Recursively process lists
+                md_text += ChatbotUtils.json_to_md(item, depth)
+        else:
+            # Write the value for non-dictionary items
+            md_text += f"{data}\n\n"
+
+        return md_text
+
 
     @staticmethod
     def is_valid_url(url: str) -> bool:

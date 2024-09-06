@@ -6,6 +6,11 @@ import os
 import base64
 from getpass import getpass
 import logging
+
+import sys
+print(sys.path)
+
+
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -20,7 +25,7 @@ load_dotenv()
 OPENAI_API_KEY = None
 AZURE_OPENAI_ENDPOINT = None
 AZURE_OPENAI_API_KEY_1 = None
-LOGGING_LEVEL = logging.DEBUG
+LOGGING_LEVEL = logging.INFO
 
 logging.basicConfig(
     level=LOGGING_LEVEL,

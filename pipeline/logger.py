@@ -1,6 +1,5 @@
-
-
 import inspect
+from logging.handlers import RotatingFileHandler
 import os
 import logging
 from .config import LOGGING_LEVEL
@@ -56,13 +55,29 @@ class ColoredFormatter(logging.Formatter):
 
         return message
 
+
+
+
 # Create a handler
 handler = logging.StreamHandler()
 # Set the custom formatter
 formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
 handler.setFormatter(formatter)
 
+
+# Get the log file path (change the path as needed)
+log_file_path = os.path.join(os.getcwd(), 'app.log')  # Current working directory
+
+# Create a file handler to save logs to a file
+file_handler = RotatingFileHandler(log_file_path, maxBytes=5000000, backupCount=5)
+file_formatter = logging.Formatter('%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s')
+file_handler.setFormatter(file_formatter)
+
+# Set the file handler log level (can be different from the stream handler)
+file_handler.setLevel(LOGGING_LEVEL)
+
 # Set up the root logger
 logger = logging.getLogger(get_importing_file_name())
 logger.setLevel(LOGGING_LEVEL)
 logger.addHandler(handler)
+logger.addHandler(file_handler)

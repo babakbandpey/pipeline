@@ -2,10 +2,10 @@
 This script reads file's content and organizes it in a structured way.
 """
 
-import argparse
 import datetime
 import json
 import os
+import sys
 from typing import Union
 from pipeline import PipelineUtils, FileUtils, ChatbotUtils, logger
 
@@ -32,38 +32,64 @@ def analyzer(chatbot, prompt: str) -> Union[dict, str]:
     return ChatbotUtils.parse_json(response)
 
 
-def get_output_file(file: str) -> str:
+def get_output_file(path: str) -> str:
     """
-    Get the output file name based on the input file.
-    :param file: Input file
-    :return: Output file
+    Get the output file name based on the input file or folder.
+    If the input is a file, the output will be based on the file name.
+    If the input is a folder, the output will be based on the last folder in the path.
+    :param file: Input file or folder
+    :return: Output file with full path
     """
 
-    return (
-        f"{file.replace(' ', ' ').replace('.pdf', '').replace('.txt', '')}-"
-        f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-    )
+    # Check if the file or folder exists
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The file or folder '{path}' does not exist.")
+
+    # Check if the input is a directory or a file
+    if os.path.isdir(path):
+        # Extract the last folder name from the path
+        folder_name = os.path.basename(os.path.normpath(path))
+        # Join the folder path and file name
+        return os.path.join(path, f"{folder_name}-{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
+    else:
+        # It's a file, so return based on the file name
+        folder_path = os.path.dirname(path)
+        file_name = os.path.basename(path).replace(".pdf", "").replace(".txt", "")
+        return os.path.join(folder_path, f"{file_name}-{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
+
 
 
 def organize_content(args, output_file, create_questionnaire=False):
     """
     Main function to organize the content of files.
     :param args: Arguments passed to the script
-    :param create_questionnaire: Create an questionnaire based on the analysis of the content
+    :param create_questionnaire: Create a questionnaire based on the analysis of the content
     """
 
+    # Get all files
     files = FileUtils.get_files(args.path, f".{args.type}")
 
+    # List to store all requirements (for both cases of create_questionnaire)
+    all_requirements = []
+
     for file in files:
-        # Create an output file with timestamp .md file and write the response to it
+
+
+        # Extract the file name, remove extensions, and replace dashes with spaces
+        file_name = os.path.basename(file).replace("-", " ").replace(".pdf", "").replace(".txt", "")
+
+        # Write the file name as the title at the top of the markdown file
+        FileUtils.write_to_file(output_file, f"# {file_name}\n\n", mode='a')
+
+        # Create an output file with timestamp and write the response to it
         print(f"Processing file: {file}")
 
         args.collection_name = f"organizer_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
         chatbot = PipelineUtils.create_chatbot(args)
 
         logger.info("............................................")
-        # Get absolute path of the file
 
+        # First prompt: Analyze content
         prompt = (
             "Analyze content and make a prioritized list of which areas it covers "
             "based on what is important for Cybersecurity, Business Continuity and Disaster Recovery."
@@ -73,15 +99,17 @@ def organize_content(args, output_file, create_questionnaire=False):
         for i, area in enumerate(topics['areas_covered']):
             FileUtils.write_to_file(output_file, f"## {i + 1} - {area}\n\n", mode='a')
 
-            prompt= f"""
-            List every relevant requirements needed to comply with '{area}'.
-            If the requirements are repeated, there should be a good reason for mentioning them again.
+            # Second prompt: List relevant requirements
+            prompt = f"""
+            List every relevant requirement needed to comply with '{area}'.
             The list should be prioritized based on the importance of the requirements.
-            If possible improve, optimize and modenize the requirements to match the current standards and best practices.
+            If possible improve, optimize and modernize the requirements to match the current standards and best practices.
             If the requirement is essential, it should star with a +.
             If the requirement is nice to have, it should start with a %.
-            """
+            """.replace("  ", "")
+
             requirements = analyzer(chatbot, prompt)
+
             for key in requirements:
                 for z, requirement in enumerate(requirements[key]):
                     output = ChatbotUtils.process_json_response(requirement)
@@ -90,26 +118,33 @@ def organize_content(args, output_file, create_questionnaire=False):
                     else:
                         FileUtils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n", mode='a')
 
+                    # Add to all_requirements if create_questionnaire is True
                     if create_questionnaire:
-                        yield area, requirement
+                        all_requirements.append((area, requirement))
 
+
+            # adding page break for pandoc
+            FileUtils.write_to_file(output_file, "\n\n---\n\n", mode='a')
+            # \newpage
+            FileUtils.write_to_file(output_file, "\n\n\\newpage\n\n", mode='a')
 
         # Get the purpose of the policies and the requirements
         prompt = "Write the purpose of the policies and the requirements in a few sentences."
         purpose = analyzer(chatbot, prompt)
-
         FileUtils.prepend_to_file(output_file, f"# Purpose\n\n{purpose['purpose']}\n\n")
 
         # Get a description of the content
         prompt = "Summarize the content in a few sentences."
         summary = analyzer(chatbot, prompt)
-
         FileUtils.prepend_to_file(output_file, f"# Summary\n\n{summary['summary']}\n\n")
 
+        # Clean up the chatbot collection and history
         chatbot.delete_collection()
         chatbot.clear_chat_history()
 
         logger.info("::::::::::::::::::::::::::::::::::::::::::::")
+
+    return all_requirements if create_questionnaire else None
 
 
 def create_questionnaire(area, requirement, output_file):
@@ -209,28 +244,161 @@ def convert_md_to_docx(output_file):
     :param output_file: Output markdown file
     """
 
+    if not os.path.exists(output_file):
+        logger.error("The output file does not exist: %s", output_file)
+        raise FileNotFoundError("The output file does not exist.")
+
     docx_file = output_file.replace('.md', '.docx')
 
+    logger.info(f"Converting markdown file to docx file: {output_file} -> {docx_file}")
     # Convert the markdown file to a docx file
     os.system(f"pandoc {output_file} -o {docx_file}")
 
     logger.info("Docx file created: %s", docx_file)
 
+
+def remove_duplicates(args, output_file):
+    """
+    Remove duplicate requirements from the output file.
+    :param args: Arguments passed to the script
+    :param output_file: Output file
+    """
+
+    # Get all files
+    files = FileUtils.get_files(args.path, f".{args.type}")
+
+    print(f"Removing duplicates from {len(files)} files... {files}")
+
+    for file in files:
+        # Extract the file name, remove extensions, and replace dashes with spaces
+        file_name = os.path.basename(file).replace("-", " ").replace(".pdf", "").replace(".txt", "")
+
+        # Write the file name as the title at the top of the markdown file
+        FileUtils.write_to_file(output_file, f"# {file_name}\n\n", mode='a')
+
+        # Create an output file with timestamp and write the response to it
+        logger.info(f"Processing file: {file}")
+
+        args.collection_name = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+
+        args.system_prompt_template = """
+Your are a text analyst and you have to analyze the content of the file.
+the response should be in JSON format.
+Examples:
+{{
+  "LogManagementPolicy": {{
+    "Purpose": "To establish a comprehensive framework for logging data to support the identification, investigation, and response to information security incidents while ensuring the integrity and confidentiality of log data.",
+    "Scope": "This policy applies to all IT devices, applications, and systems within the organization that generate logs.",
+    "PolicyStatement": {{
+      "LoggingRequirements": {{
+        "EventLogs": "All user activities, exceptions, faults, and security events must be logged and retained for a minimum of 90 days.",
+        "LogTypes": {{
+          "SystemLogs": {{
+            "Description": "Default logs generated by systems.",
+            "Retention": "Minimum of 90 days.",
+            "Modification": "Must remain unchanged."
+          }},
+          "ApplicationLogs": {{
+            "Description": "Custom logs generated by applications.",
+            "Retention": "Minimum of 90 days, subject to business needs.",
+            "Modification": "Post-log enrichment is permitted."
+          }},
+          "AuditLogs": {{
+            "Description": "Logs that meet specific audit requirements.",
+            "Retention": "Minimum of 90 days.",
+            "Modification": "Must remain unchanged."
+          }}
+        }}
+      }},
+      "LogProtection": {{
+        "AccessControl": "Access to logs must be restricted based on role-based access control (RBAC).",
+        "Integrity": "Logs must be protected from unauthorized modification or deletion.",
+        "Confidentiality": "Logs must be classified as confidential and stored securely."
+      }},
+      "LogCollection": {{
+        "CentralLogRepository": "All logs must be collected in a centralized log repository for analysis and monitoring.",
+        "SIEMIntegration": "Logs must be integrated with Security Information and Event Management (SIEM) systems for real-time threat detection."
+      }},
+      "LogTransfer": {{
+        "RealTimeTransfer": "Logs must be transferred in real-time to enable timely analysis.",
+        "Encryption": "Logs must be encrypted during transfer over insecure networks."
+      }},
+      "MonitoringAndReview": {{
+        "RegularReview": "Logs must be reviewed at least monthly to identify abnormal patterns and potential threats.",
+        "IncidentResponse": "Log data must support incident response activities and forensic analysis."
+      }},
+      "Training": {{
+        "StakeholderTraining": "All relevant personnel must receive training on log management processes and best practices."
+      }},
+      "Exceptions": {{
+        "Process": "Any deviations from this policy must follow the established exception process, including risk assessment and mitigation planning."
+      }}
+    }},
+    "Compliance": {{
+      "Standards": "This policy aligns with ISO/IEC 27002:2022 and other relevant regulatory requirements."
+    }}
+  }}
+}}
+
+You can change the keys and values to match the content of the file.
+You can use camelCase or snake_case or ordinary case for the keys.
+"""
+
+        chatbot = PipelineUtils.create_chatbot(args)
+
+        logger.info("............................................")
+
+        # First prompt: Analyze content
+        prompt = (
+            "Analyze content and make a prioritized list of which areas it covers "
+            "based on what is important for Cybersecurity, Business Continuity and Disaster Recovery."
+        )
+        topics = analyzer(chatbot, prompt)
+
+        for i, area in enumerate(topics['areas_covered']):
+            FileUtils.write_to_file(output_file, f"## {i + 1} - {area}\n\n", mode='a')
+
+            # Second prompt: List relevant requirements
+            prompt = f"""
+            write the policy about the topic '{area}'.
+            If possible improve, optimize and modernize the text to match the current standards and best practices.
+            Avoid redundant and duplicate information, unless it is necessary and relevant.
+            """.replace("  ", "")
+
+            requirements = analyzer(chatbot, prompt)
+            parsed_response = ChatbotUtils.parse_json(requirements)
+            output = ChatbotUtils.json_to_md(parsed_response)
+            FileUtils.write_to_file(output_file, f"{output}\n", mode='a')
+
+            # adding page break for pandoc
+            FileUtils.write_to_file(output_file, "\n\n---\n\n", mode='a')
+            # \newpage
+            FileUtils.write_to_file(output_file, "\n\n\\newpage\n\n", mode='a')
+
 def main():
     """Entry point for the script."""
-
-    args = PipelineUtils.get_args()
-
-    if args.type not in ['pdf', 'txt']:
-        logger.error("The type should be 'pdf' or 'txt'.")
-        raise ValueError("The type should be 'pdf' or 'txt'.")
-
-
     try:
+        args = PipelineUtils.get_args()
+
+        logger.info(f"args.create_questionnaire: {args.create_questionnaire}")
+
+        if args.type not in ['pdf', 'txt']:
+            logger.error("The type should be 'pdf' or 'txt'.")
+            raise ValueError("The type should be 'pdf' or 'txt'.")
 
         output_file = get_output_file(args.path)
 
-        if args.create_questionnaire:
+        logger.info(f"Output file: {output_file}")
+
+
+        if args.remove_duplicates:
+            logger.info("Removing duplicates...")
+            remove_duplicates(args, output_file)
+
+        elif args.create_questionnaire:
+
+            logger.info("Creating questionnaire...")
 
             for area, requirement in organize_content(args, output_file, True):
                 logger.info("Creating questionnaire for area '%s' and requirement '%s'...", area, requirement)
@@ -238,8 +406,10 @@ def main():
 
             convert_json_to_md(output_file)
         else:
+            logger.info("Organizing content...")
             organize_content(args, output_file, False)
 
+        logger.info("Converting markdown to docx...")
         convert_md_to_docx(output_file)
 
     except KeyboardInterrupt:
