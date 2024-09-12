@@ -33,7 +33,7 @@ def create_script(path:str, prompt:str):
     args.type = 'py'
     args.path = path
     llm = PipelineUtils.create_chatbot(args)
-    llm.setup_chat_prompt(system_template=system_template, output_type='python')
+    llm.setup_chat_prompt(system_prompt_template=system_template, output_type='python')
     # Invoke the chain with the provided text and info to get the modified script.
     answer = llm.invoke(prompt)
 

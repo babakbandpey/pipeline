@@ -60,6 +60,7 @@ langchain-openai
 langchain-text-splitters
 langserve
 langsmith
+markdown
 markdown-it-py
 MarkupSafe
 marshmallow
@@ -87,6 +88,7 @@ opentelemetry-util-http
 orjson
 overrides
 packaging
+pandoc-docx-pagebreakpy
 posthog
 protobuf
 pyasn1
@@ -129,6 +131,7 @@ typer
 typing-inspect
 typing_extensions
 ujson
+unstructured
 urllib3
 uvicorn
 uvloop

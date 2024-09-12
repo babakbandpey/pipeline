@@ -72,14 +72,18 @@ def organize_content(args, output_file, create_questionnaire=False):
     # List to store all requirements (for both cases of create_questionnaire)
     all_requirements = []
 
+
     for file in files:
 
+        content = []
 
         # Extract the file name, remove extensions, and replace dashes with spaces
-        file_name = os.path.basename(file).replace("-", " ").replace(".pdf", "").replace(".txt", "")
+        subject = os.path.basename(file).replace("-", " ").replace(".pdf", "").replace(".txt", "")
+
+        content.append(f"# {subject}\n\n")
 
         # Write the file name as the title at the top of the markdown file
-        FileUtils.write_to_file(output_file, f"# {file_name}\n\n", mode='a')
+        # FileUtils.write_to_file(output_file, f"# {file_name}\n\n", mode='a')
 
         # Create an output file with timestamp and write the response to it
         print(f"Processing file: {file}")
@@ -94,55 +98,205 @@ def organize_content(args, output_file, create_questionnaire=False):
             "Analyze content and make a prioritized list of which areas it covers "
             "based on what is important for Cybersecurity, Business Continuity and Disaster Recovery."
         )
-        topics = analyzer(chatbot, prompt)
+        response_topics = analyzer(chatbot, prompt)
 
-        for i, area in enumerate(topics['areas_covered']):
-            FileUtils.write_to_file(output_file, f"## {i + 1} - {area}\n\n", mode='a')
+        for i, area in enumerate(response_topics['areas_covered']):
+            content.append(f"## {i + 1} - {area}\n\n")
 
             # Second prompt: List relevant requirements
             prompt = f"""
             List every relevant requirement needed to comply with '{area}'.
-            The list should be prioritized based on the importance of the requirements.
-            If possible improve, optimize and modernize the requirements to match the current standards and best practices.
-            If the requirement is essential, it should star with a +.
-            If the requirement is nice to have, it should start with a %.
+            If no content is found in knowledge base, write requirements based on your knowledge about "{area}" related to "{subject}" in domain of Cybersecurity.
+            List should be prioritized based on importance of requirements.
+            Keep same tone and same style of writing and do not change meaning of requirements.
+            Response in json format.
+            format of response should be like this:
+            {{
+                "requirements": [
+                    "Requirement 1",
+                    "Requirement 2",
+                    "Requirement 3",
+                    ........
+                ],
+            }}
             """.replace("  ", "")
 
-            requirements = analyzer(chatbot, prompt)
+            response_requirements = analyzer(chatbot, prompt)
 
-            for key in requirements:
-                for z, requirement in enumerate(requirements[key]):
-                    output = ChatbotUtils.process_json_response(requirement)
-                    if output.startswith(" - "):
-                        FileUtils.write_to_file(output_file, f"{output}\n", mode='a')
-                    else:
-                        FileUtils.write_to_file(output_file, f"**{i + 1}.{z + 1}:** {output}\n", mode='a')
+            if 'requirements' not in response_requirements:
+                logger.error(f"No requirements found in the response for the area: '{area}' for the subject: '{subject}'.")
+                raise ValueError(f"No requirements found in the response for the area: '{area}' for the subject '{subject}' .")
 
-                    # Add to all_requirements if create_questionnaire is True
-                    if create_questionnaire:
-                        all_requirements.append((area, requirement))
+            requirements = response_requirements['requirements']  # Extract the 'requirements' list from the response
+
+            for z, requirement in enumerate(requirements):
+                logger.info(f"Requirement: {requirement}")
+
+                output = ChatbotUtils.process_json_response(requirement)
+
+                if output.startswith(" - "):
+                    content.append(f"{output}\n\n")
+                else:
+                    content.append(f"**{z + 1}:** {output}\n\n")
+
+                # Add to all_requirements if create_questionnaire is True
+                if create_questionnaire:
+                    all_requirements.append((z + 1, requirement))
 
 
-            # adding page break for pandoc
-            FileUtils.write_to_file(output_file, "\n\n---\n\n", mode='a')
-            # \newpage
-            FileUtils.write_to_file(output_file, "\n\n\\newpage\n\n", mode='a')
+        content.append("\\newpage\n\n")
+
+        # Inserting a table of contents at the top of the file
+        content.insert(0, f"\\toc\n\\newpage")
 
         # Get the purpose of the policies and the requirements
         prompt = "Write the purpose of the policies and the requirements in a few sentences."
         purpose = analyzer(chatbot, prompt)
-        FileUtils.prepend_to_file(output_file, f"# Purpose\n\n{purpose['purpose']}\n\n")
+        content.insert(1, f"## Purpose\n\n{purpose['purpose']}\n\n")
 
         # Get a description of the content
         prompt = "Summarize the content in a few sentences."
         summary = analyzer(chatbot, prompt)
-        FileUtils.prepend_to_file(output_file, f"# Summary\n\n{summary['summary']}\n\n")
+        content.insert(2, f"## Summary\n\n{summary['summary']}\n\n")
+
+        FileUtils.write_to_file(output_file, "".join(content), mode='a')
 
         # Clean up the chatbot collection and history
         chatbot.delete_collection()
         chatbot.clear_chat_history()
 
         logger.info("::::::::::::::::::::::::::::::::::::::::::::")
+
+    return all_requirements if create_questionnaire else None
+
+
+def deep_organizer(args, output_file, create_questionnaire=False):
+    """
+    Main function to organize the content of files.
+    :param args: Arguments passed to the script
+    :param create_questionnaire: Create a questionnaire based on the analysis of the content
+    """
+
+    # Get all files
+    files = FileUtils.get_files(args.path, f".{args.type}")
+
+    # List to store all requirements (for both cases of create_questionnaire)
+    all_requirements = []
+
+
+    for file in files:
+
+        content = []
+
+        # Extract the file name, remove extensions, and replace dashes with spaces
+        subject = os.path.basename(file).replace("-", " ").replace(".pdf", "").replace(".txt", "")
+
+        content.append(f"% {subject}\n\n")
+
+        # Write the file name as the title at the top of the markdown file
+        # FileUtils.write_to_file(output_file, f"# {file_name}\n\n", mode='a')
+
+        # Create an output file with timestamp and write the response to it
+        print(f"Processing file: {file}")
+
+        args.collection_name = f"deep_organizer_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        chatbot = PipelineUtils.create_chatbot(args)
+
+        logger.info("............................................")
+
+        prompt = (
+            "Analyze content and make a list of which policies it covers. "
+            "Find the title of the policies and write them in a list. "
+            "The format of the response should be like this: "
+            "{"
+            "    'policies': ["
+            "        'Policy 1',"
+            "        'Policy 2',"
+            "        'Policy 3',"
+            "        ........"
+            "    ]"
+            "}"
+        )
+
+        response_policies = analyzer(chatbot, prompt)
+
+        logger.info("Policies: %s", response_policies['policies'])
+
+        for i, policy in enumerate(response_policies['policies']):
+
+            content.append(f"# {i + 1} - {policy}\n\n")
+
+            # Second prompt: Analyze content
+
+            prompt = f"Analyze content and make a prioritized list of which areas it covers for policy '{policy}'."
+
+            response_topics = analyzer(chatbot, prompt)
+
+            for i, area in enumerate(response_topics['areas_covered']):
+                content.append(f"## {i + 1} - {area}\n\n")
+
+                # Second prompt: List relevant requirements
+                prompt = f"""
+                List every relevant requirement needed to comply with '{area}'.
+                If no content is found in knowledge base, write requirements based on your knowledge about "{area}" related to "{subject}" in domain of Cybersecurity.
+                List should be prioritized based on importance of requirements.
+                Keep same tone and same style of writing and do not change meaning of requirements.
+                Response in json format.
+                format of response should be like this:
+                {{
+                    "requirements": [
+                        "Requirement 1",
+                        "Requirement 2",
+                        "Requirement 3",
+                        ........
+                    ],
+                }}
+                """.replace("  ", "")
+
+                response_requirements = analyzer(chatbot, prompt)
+
+                if 'requirements' not in response_requirements:
+                    logger.error(f"No requirements found in the response for the area: '{area}' for the subject: '{subject}'.")
+                    raise ValueError(f"No requirements found in the response for the area: '{area}' for the subject '{subject}' .")
+
+                requirements = response_requirements['requirements']  # Extract the 'requirements' list from the response
+
+                for z, requirement in enumerate(requirements):
+                    logger.info(f"Requirement: {requirement}")
+
+                    output = ChatbotUtils.process_json_response(requirement)
+
+                    if output.startswith(" - "):
+                        content.append(f"{output}\n\n")
+                    else:
+                        content.append(f"**{z + 1}:** {output}\n\n")
+
+                    # Add to all_requirements if create_questionnaire is True
+                    if create_questionnaire:
+                        all_requirements.append((z + 1, requirement))
+
+
+            content.append("\\newpage\n\n")
+
+            content.insert(0, f"\\toc\n\\newpage")
+
+            # Get the purpose of the policies and the requirements
+            prompt = "Write the purpose of the policies and the requirements in a few sentences."
+            purpose = analyzer(chatbot, prompt)
+            content.insert(1, f"## Purpose\n\n{purpose['purpose']}\n\n")
+
+            # Get a description of the content
+            prompt = "Summarize the content in a few sentences."
+            summary = analyzer(chatbot, prompt)
+            content.insert(2, f"## Summary\n\n{summary['summary']}\n\n")
+
+            FileUtils.write_to_file(output_file, "".join(content), mode='a')
+
+        # Clean up the chatbot collection and history
+        chatbot.delete_collection()
+        chatbot.clear_chat_history()
+
+        logger.info("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
 
     return all_requirements if create_questionnaire else None
 
@@ -252,9 +406,28 @@ def convert_md_to_docx(output_file):
 
     logger.info(f"Converting markdown file to docx file: {output_file} -> {docx_file}")
     # Convert the markdown file to a docx file
-    os.system(f"pandoc {output_file} -o {docx_file}")
+    os.system(f"pandoc {output_file} --filter=pandoc-docx-pagebreakpy -o {docx_file}")
 
     logger.info("Docx file created: %s", docx_file)
+
+
+def convert_md_to_pdf(output_file):
+    """
+    Convert a markdown file to a pdf file.
+    :param output_file: Output markdown file
+    """
+
+    if not os.path.exists(output_file):
+        logger.error("The output file does not exist: %s", output_file)
+        raise FileNotFoundError("The output file does not exist.")
+
+    pdf_file = output_file.replace('.md', '.pdf')
+
+    logger.info(f"Converting markdown file to pdf file: {output_file} -> {pdf_file}")
+    # Convert the markdown file to a pdf file
+    os.system(f"pandoc {output_file} -o {pdf_file}")
+
+    logger.info("Pdf file created: %s", pdf_file)
 
 
 def remove_duplicates(args, output_file):
@@ -383,14 +556,15 @@ def main():
 
         logger.info(f"args.create_questionnaire: {args.create_questionnaire}")
 
-        if args.type not in ['pdf', 'txt']:
-            logger.error("The type should be 'pdf' or 'txt'.")
-            raise ValueError("The type should be 'pdf' or 'txt'.")
+        document_types = ['pdf', 'txt', 'md']
+
+        if args.type not in document_types:
+            logger.error("The type should be " + " or ".join(document_types))
+            raise ValueError("The type should be " + " or ".join(document_types))
 
         output_file = get_output_file(args.path)
 
         logger.info(f"Output file: {output_file}")
-
 
         if args.remove_duplicates:
             logger.info("Removing duplicates...")
@@ -405,6 +579,19 @@ def main():
                 create_questionnaire(area, requirement, output_file)
 
             convert_json_to_md(output_file)
+        elif args.repair_md:
+            try:
+                logger.info("Repairing markdown file...")
+                ChatbotUtils.rapair_md_file(args.path, args.output_path)
+                output_file = args.output_path
+                convert_md_to_docx(output_file)
+            except Exception as e:
+                logger.error("Error reparing markdown file: %s", e)
+                raise e
+            return
+        elif args.deep_organize:
+            logger.info("Deep organizing content...")
+            deep_organizer(args, output_file, False)
         else:
             logger.info("Organizing content...")
             organize_content(args, output_file, False)

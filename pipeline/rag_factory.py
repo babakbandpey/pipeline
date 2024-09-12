@@ -9,7 +9,8 @@ rag_mapping = {
     'py': ('pipeline.py_rag', 'PyRAG'),
     'web': ('pipeline.web_rag', 'WebRAG'),
     'pdf': ('pipeline.pdf_rag', 'PdfRAG'),
-    'json': ('pipeline.json_rag', 'JsonRAG')
+    'json': ('pipeline.json_rag', 'JsonRAG'),
+    'md': ('pipeline.md_rag', 'MdRAG')
 }
 
 class RAGFactory:

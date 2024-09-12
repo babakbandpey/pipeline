@@ -1,309 +1,225 @@
-"""
-This script is a simple AI Agent which will
-help you to commit your changes to the repository.
-
-The script performs the following steps:
-1. Checks if there are any changes to commit.
-2. Gets the current branch name and handles being on the main branch.
-3. Stages all changes.
-4. Generates a diff.txt file including all changes.
-5. Runs tests and aborts if they fail.
-6. Runs a chatbot to perform checks before committing the changes,
-    including security check, vulnerability check, code quality check, and pylint check.
-7. Asks for suggestions for code improvement and allows the user to implement them.
-8. Creates a commit message using the chatbot.
-9. Asks for confirmation to continue with the commit.
-10. Performs the git commit.
-11. Sets the upstream branch and pushes the changes.
-12. Cleans up temporary files.
-
-The script relies on the 'pipeline' module, which provides utility functions for
-    running shell commands and creating a chatbot.
-
-Note: This script assumes that the necessary dependencies are installed and
-    the repository is properly configured with Git.
-"""
-
 import subprocess
-import sys
 import os
-from datetime import datetime
-from pipeline import PipelineUtils, ChatbotUtils, logger
+import logging
+import platform
 
-def run_command(command):
-    """Run a shell command and return the output."""
+# Configure the logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create file handler to save logs to push.log
+file_handler = logging.FileHandler('./logs/push.log')
+file_handler.setLevel(logging.INFO)
+
+# Create console handler to print logs to stdout
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Define the log format
+formatter = logging.Formatter('>>>> %(filename)s - %(lineno)d - %(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+def run_command(command, interactive=False):
+    """
+    Run a shell command and return the output.
+    params: command: The command to run.
+    params: interactive: Whether the command is interactive (default: False).
+    returns: The stdout and stderr output of the command.
+    """
     try:
-        result = subprocess.run(command, text=True, capture_output=True, check=True)
-        return result.stdout.strip(), result.returncode
+        logger.info(f"Running command: {command}")
+        if interactive:
+            result = subprocess.run(command, shell=True, check=True)
+            logger.info(result.stdout.decode() if result.stdout else "No stdout output")
+        else:
+            result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            stdout_output = result.stdout.decode().strip()
+            stderr_output = result.stderr.decode().strip()
+
+            logger.info(f"Stdout: {stdout_output}")
+            logger.info(f"Stderr: {stderr_output if stderr_output else 'No stderr output'}")
+            return stdout_output, stderr_output
     except subprocess.CalledProcessError as e:
-        logger.exception("Error running command '%s': %s", " ".join(command), e)
-        sys.exit(e.returncode)
-
-def has_changes_to_commit():
-    """Check if there are any changes to commit."""
-    status, _ = run_command(["git", "status", "--porcelain"])
-    return bool(status)
-
-def get_current_branch_name():
-    """Get the current git branch name."""
-    branch_name, _ = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-    return branch_name
-
-def stage_changes():
-    """Stage all changes including untracked files."""
-    logger.info("Staging all changes...")
-    run_command(["git", "add", "-A"])
-
-def unstage_changes():
-    """Unstage all changes."""
-    logger.info("Unstaging all changes...")
-    run_command(["git", "reset"])
-
-def generate_diff():
-    """Generate diff.txt including all changes."""
-    logger.info("Generating diff.txt...")
-    try:
-        with open("diff.txt", "w", encoding='utf-8') as diff_file:
-            diff, _ = run_command(["git", "diff", "--staged"])
-            diff_file.write(diff)
-    except IOError as e:
-        logger.error("Error generating diff.txt: %s", e)
-        sys.exit(1)
-
-def branch_exists(branch_name):
-    """Check if a branch already exists."""
-    existing_branches, _ = run_command(["git", "branch", "--list"])
-    return branch_name in existing_branches.split()
-
-def create_and_checkout_new_branch():
-    """Create a new branch and switch to it."""
-    while True:
-        new_branch_name = input(
-            "Enter the new branch name (or leave empty to auto-generate): "
-        ).strip()
-
-        if not new_branch_name:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            new_branch_name = f"branch_{timestamp}"
-
-        if new_branch_name == "main":
-            logger.warning("Branch name cannot be 'main'. Please choose another name.")
-            continue
-
-        if branch_exists(new_branch_name):
-            logger.warning("Branch name '%s' already exists. Please choose another name.", new_branch_name)
-            continue
-
-        logger.info("Creating and checking out new branch: %s", new_branch_name)
-        run_command(["git", "checkout", "-b", new_branch_name])
-        return new_branch_name
-
-def run_tests():
-    """Run pytest and abort if tests fail."""
-    logger.info("Running tests...")
-    try:
-        run_command(["pytest"])
-    except subprocess.CalledProcessError as e:
-        logger.exception("Tests failed. Aborting commit. %s", e)
-        sys.exit(1)
-    logger.info("All tests passed.")
+        logger.error(f"Error running command: {command}")
+        logger.error(e.stderr.decode() if e.stderr else "No stderr output")
+        exit(1)
 
 
-def run_checks(chatbot):
+def check_file_exists(file_path):
     """
-    Run checks before committing the changes.
-    params: chatbot: The chatbot object to interact with the AI model.
-    return: True if all checks pass, False otherwise.
+    Check if the specified file exists.
+    params: file_path: The path to the file to check.
     """
+    if not os.path.isfile(file_path):
+        logger.error(f"Expected file {file_path} not found.")
+        raise FileNotFoundError(f"File not found: {file_path}")
 
-    security_check = chatbot.invoke(
-        "Confirm that the changes does not contain any sensitive information."
-    )
 
-    if security_check:
-        logger.info("Security check: %s", security_check)
-        response = input("Is the security check okay? (y/n): ").strip().lower()
-        if response == "n":
-            return False
-
-    vulnerability_check = chatbot.invoke(
-        "Confirm that the changes does not introduce any security vulnerabilities."
-    )
-
-    if vulnerability_check:
-        logger.info("Vulnerability check: %s", vulnerability_check)
-        response = input("Is the vulnerability check okay? (y/n): ").strip().lower()
-        if response == "n":
-            return False
-
-    code_quality_check = chatbot.invoke(
-        "Confirm that the changes meet the code quality standards."
-    )
-
-    if code_quality_check:
-        logger.info("Code quality check: %s", code_quality_check)
-        response = input("Is the code quality check okay? (y/n): ").strip().lower()
-        if response == "n":
-            return False
-
-    pylint_check = chatbot.invoke(
-        "Confirm that the changes pass the pylint check."
-    )
-
-    if pylint_check:
-        logger.info("Pylint check: %s", pylint_check)
-        response = input("Is the pylint check okay? (y/n): ").strip().lower()
-        if response == "n":
-            return False
-
-    improvement_check = chatbot.invoke(
-        """
-        Write 1 suggestion for code improvement of the changes and format it as a JSON.
-        The JSON should contain the following keys
-        'path': 'The path of the file',
-        'line': 'The line number where the improvement is suggested',
-        'snippet': 'The code snippet where the improvement is suggested',
-        'suggestion': 'The suggestion for improvement'
-        'suggested_change': 'The suggested improved code snippet'
-        'function': 'The function name where the improvement is suggested if applicable'
-        """
-    )
-
-    if improvement_check:
-        logger.info(improvement_check)
-
-    response = input("Do you want to implement the improvement? (y/n): ").strip().lower()
-    if response == "y":
-        return False
-
-    return True
-
-def create_commit_message(chatbot):
-    """Create a commit message."""
-    logger.info("Running chatbot.py to generate commit message...")
-    try:
-        while True:
-            commit_message = chatbot.invoke(
-                """
-                Write a detailed commit message based on the provided context.
-                Write the title of the commit message in the first line.
-                Do not include any extra information in the
-                commit message such as code.
-                Format the commit message as JSON.
-                The JSON should contain the following keys:
-                'title': 'The title of the commit message',
-                'description': ['The description of the commit message as a list of sentences.'],
-                'type': 'The type of the commit message (e.g. feature, bugfix, etc.)',
-                """
-            )
-
-            if commit_message:
-                commit_message_json = ChatbotUtils.parse_json(commit_message)
-                if commit_message_json is None:
-                    logger.warning("Invalid JSON format. Truing again... CTRL+C to abort.")
-                    continue
-                commit_message = commit_message_json.get('title', 'No Title!')
-                commit_message += "\n\nDescription:\n"
-                description = commit_message_json.get('description', ['No Description!'])
-                for i, sentence in enumerate(description, start=1):
-                    commit_message += f"{i}. {sentence.strip()}.\n"
-                commit_message += f"\nType: {commit_message_json.get('type', 'No Type!')}"
-
-                logger.info("Generated commit message: %s", commit_message)
-                response = input("Is the commit message okay? (y/n): ").strip().lower()
-                if response == "y":
-                    with open("commit_message.txt", "w", encoding='utf-8') as commit_message_file:
-                        commit_message_file.write(commit_message)
-                    break
-
-        return True
-
-    except KeyboardInterrupt:
-        logger.error("Aborting commit.")
-    except ValueError as e:
-        logger.error("Error generating commit message: %s", e)
-
-    return False
-
-def cleanup():
+def check_if_running_in_docker():
     """
-    Cleanup temporary files.
-    return: True if cleanup is successful, False otherwise.
+    Check if the script is running in a Docker container.
     """
+    if platform.system() == 'Linux':
+        if os.path.exists('/.dockerenv'):
+            logger.error("This script should not be executed from within a Docker container.")
+            exit(1)
+        try:
+            with open('/proc/1/cmdline', 'r') as f:
+                if 'docker' in f.read():
+                    logger.error("This script should not be executed from within a Docker container.")
+                    exit(1)
+        except FileNotFoundError:
+            pass
+    else:
+        logger.info("Docker environment check skipped for non-Linux platform.")
+
+
+def add_ssh_key(ssh_id='id_rsa'):
+    """
+    Add the specified SSH key to the ssh-agent.
+    params: ssh_id: The SSH key identifier (default: id_rsa).
+    """
+    ssh_key_path = os.path.expanduser(f"~/.ssh/{ssh_id}")
+    if not os.path.isfile(ssh_key_path):
+        logger.error(f"SSH key not found at {ssh_key_path}. Please ensure it exists.")
+        exit(1)
 
     try:
-        os.remove("diff.txt")
-    except OSError as e:
-        logger.error("Error removing diff.txt: %s", e)
-        return False
+        if platform.system() == 'Windows':
+            # Windows-specific command to start ssh-agent and add key
+            run_command("start-ssh-agent.cmd")
+            run_command(f"ssh-add '{ssh_key_path}'", interactive=True)
+        else:
+            # Unix-like systems
+            run_command("eval $(ssh-agent -s)", interactive=True)
+            run_command(f"ssh-add {ssh_key_path}", interactive=True)
+        logger.info(f"SSH key {ssh_key_path} added to the ssh-agent.")
+    except Exception as e:
+        logger.error("Error adding SSH key to the ssh-agent.")
+        logger.error(str(e))
+        exit(1)
 
-    try:
-        os.remove("commit_message.txt")
-    except OSError as e:
-        logger.error("Error removing commit_message.txt: %s", e)
-        return False
 
-    return True
+def activate_virtualenv_and_run_script(container_id, shell_type="bash"):
+    """
+    Activate the virtual environment and run the commit_message.py script inside the container.
+    params: container_id: The ID of the Docker container.
+    params: shell_type: The shell type to use for activating the virtual environment (bash or fish).
+    """
+    if shell_type == "bash":
+        # Activating virtual environment and running commit_message.py in Bash
+        command = (
+            f"docker exec {container_id} bash -c 'source /app/env/bin/activate && "
+            f"python /app/scripts/commit_message.py && echo \"Script executed successfully.\"'"
+        )
+    elif shell_type == "fish":
+        # Activating virtual environment and running commit_message.py in Fish
+        command = (
+            f"docker exec {container_id} fish -c 'source /app/env/bin/activate.fish && "
+            f"python /app/scripts/commit_message.py && echo \"Script executed successfully.\"'"
+        )
+    else:
+        logger.error(f"Unsupported shell type: {shell_type}")
+        return
+
+    logger.info(f"Activating virtual environment and running commit_message.py in the container {container_id} using {shell_type}.")
+    run_command(command, interactive=True)
 
 
 def main():
-    """The main function."""
+    # 1. Check if running in Docker
+    check_if_running_in_docker()
 
-    # Step 0: Check if there are any changes to commit
-    if not has_changes_to_commit():
-        logger.info("No changes to commit.")
-        # push changes to remote
-        run_command(["git", "push"])
-        sys.exit(0)
+    # 2. Add SSH key if not already added
+    # add_ssh_key('id_babakbandpey')
 
-    # Step 1: Get the current branch name
-    branch_name = get_current_branch_name()
-    logger.info("Current branch: %s", branch_name)
+    # 3. Find the container ID of the running container
+    logger.info(run_command("docker ps -q"))
+    logger.info(run_command("docker ps -q --filter ancestor='pipeline-pipeline'"))
+    container_id = run_command("docker ps -q --filter ancestor='pipeline-pipeline'")[0].strip()
+    logger.info(f"container_id: {container_id}")
+    if not container_id:
+        logger.error("No running container found with the specified image.")
+        exit(1)
 
-    # Step 2: Handle being on the main branch
-    if branch_name == "main":
-        logger.info("Currently on the main branch. Creating a new branch.")
-        branch_name = create_and_checkout_new_branch()
+    logger.info(f"Running container found: {container_id}")
 
-    # Step 3: Stage all changes
-    stage_changes()
+    # 4. Stage all changes, including new files
+    try:
+        run_command("git add -A", interactive=True)
+        logger.info("All changes, including new files, have been staged.")
+    except Exception as e:
+        logger.error("Error adding all changes to git staging.")
+        logger.error(str(e))
+        exit(1)
 
-    # Step 4: Generate diff.txt
-    generate_diff()
+    # 5. Show the status of the repository
+    try:
+        status_output, _ = run_command("git status", interactive=True)
+        logger.info("Current git status after staging changes:\n" + status_output)
+    except Exception as e:
+        logger.error("Error retrieving git status.")
+        logger.error(str(e))
+        exit(1)
 
-    # Step 5: Run tests and abort if they fail
-    run_tests()
+    # 6. Generate the git diff of staged changes and save it to diff.txt
+    try:
+        run_command("git diff --cached > ./commit/diff.txt")
+        check_file_exists("./commit/diff.txt")
+        if os.path.getsize("./commit/diff.txt") == 0:
+            logger.info("No staged changes detected in the repository.")
+            exit(1)
+        logger.info("Git diff (staged changes) generated and saved to ./commit/diff.txt")
+    except Exception as e:
+        logger.error("Error generating git diff.")
+        logger.error(str(e))
+        exit(1)
 
-    # Step 6: Create a chatbot to perform checks before committing the changes
-    args = PipelineUtils.get_args()
-    args.type = "txt"
-    args.path = "diff.txt"
-    chatbot = PipelineUtils.create_chatbot(args)
+    # 7. Run the commit_message.py script inside the Docker container
+    try:
 
-    # Step 7: Run checks before committing the changes
-    if not run_checks(chatbot) or not create_commit_message(chatbot):
-        logger.info("Aborting commit.")
-        unstage_changes()
-        cleanup()
-        sys.exit(0)
+        logger.info("Executing commit_message.py inside the Docker container to generate commit message.")
+        # run_command(f"docker exec {container_id} python /app/scripts/commit_message.py")
+        activate_virtualenv_and_run_script(container_id, shell_type="bash")
+    except Exception as e:
+        logger.error("Error executing commit_message.py inside the Docker container.")
+        logger.error(str(e))
+        exit(1)
 
-    response = input("Do you want to continue with the commit? (y/n): ").strip().lower()
-    if response == "n":
-        logger.info("Aborting commit.")
-        sys.exit(0)
+    # 8. Check if commit_message.txt was created
+    logger.info("Checking if commit message was generated successfully.")
+    check_file_exists("./commit/commit_message.txt")
+    logger.info("Commit message generated successfully inside the container.")
 
-    # Step 8: Perform git commit
-    logger.info("Committing changes...")
-    run_command(["git", "commit", "-aF", "commit_message.txt"])
+    # 9. Commit the changes with the generated commit message
+    try:
+        if os.path.getsize("./commit/commit_message.txt") < 100:
+            logger.error(f"The commit message file is empty or too short.")
+            logger.error("Commit message not generated.")
+            exit(1)
 
-    # Step 9: Cleanup
-    logger.info("Cleaning up...")
-    cleanup()
+        logger.info("Committing changes with the generated commit message.")
+        run_command("git commit -F ./commit/commit_message.txt")
+        logger.info("Changes committed successfully.")
+    except Exception as e:
+        logger.error("Error committing changes.")
+        logger.error(str(e))
+        exit(1)
 
-    # Step 10: Set upstream branch and push changes
-    logger.info("Setting upstream branch to %s and pushing changes...", branch_name)
-    run_command(["git", "push", "--set-upstream", "origin", branch_name])
-
+    # 10. Push the changes to the remote repository
+    try:
+        logger.info("Pushing changes to the remote repository.")
+        run_command("git push")
+        logger.info("Changes pushed to the remote repository.")
+    except Exception as e:
+        logger.error("Error pushing changes to the remote repository.")
+        logger.error(str(e))
+        exit(1)
 
 if __name__ == "__main__":
     main()

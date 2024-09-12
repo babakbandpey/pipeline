@@ -45,7 +45,8 @@ class PipelineUtils():
             "python",
             "web",
             "pdf",
-            "json"
+            "json",
+            "md",
             ],
             help="Class type to use.",
             default="chat"
@@ -57,6 +58,13 @@ class PipelineUtils():
             required=False,
             help="Local path to a file or directory.",
             default=None
+        )
+
+        parser.add_argument(
+            '--output-path',
+            type=str,
+            required=False,
+            help='Path to save the output file.',
         )
 
         parser.add_argument(
@@ -133,6 +141,16 @@ class PipelineUtils():
             '--remove-duplicates',
             action='store_true',
             help='Remove duplicates from the text')
+
+        parser.add_argument(
+            '--repair-md',
+            action='store_true',
+            help='Repare the markdown file')
+
+        parser.add_argument(
+            '--deep-organize',
+            action='store_true',
+            help='Deep organize the text')
 
 
         return parser.parse_args()
@@ -345,12 +363,6 @@ class PipelineUtils():
 
         kwargs = PipelineUtils.get_kwargs(args)
 
-        if args.type == "chat":
-            return RAGFactory.get_rag_class("chat", **kwargs)
-
-        if args.type == "txt":
-            return RAGFactory.get_rag_class("txt", **kwargs)
-
         if args.type == "py":
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             exclude_patterns = [
@@ -369,15 +381,9 @@ class PipelineUtils():
 
             return RAGFactory.get_rag_class("py", **kwargs)
 
-        if args.type == "web":
-            return RAGFactory.get_rag_class("web", **kwargs)
-
-        if args.type == "pdf":
-            return RAGFactory.get_rag_class("pdf", **kwargs)
-
-        if args.type == "json":
-            return RAGFactory.get_rag_class("json", **kwargs)
-
-        logger.error("Type not found for %s.", args.type)
-        logger.info("Types: chat, txt, py, web, pdf, json")
-        raise ValueError(f"Type not found for {args.type}.")
+        try:
+            return RAGFactory.get_rag_class(args.type, **kwargs)
+        except ValueError:
+            logger.error("Type not found for %s.", args.type)
+            logger.info("Types: chat, txt, py, web, pdf, json")
+            raise ValueError(f"Type not found for {args.type}.")

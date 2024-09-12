@@ -14,7 +14,7 @@ class FileUtils:
         """
 
         if exclude_dirs is None:
-            exclude_dirs = [".env", ".git"]
+            exclude_dirs = [".env", ".git", "env"]
 
         # controlling if the root_path is a file
         if os.path.isfile(root_path):
@@ -126,3 +126,15 @@ class FileUtils:
         except FileNotFoundError as e:
             logger.error("Error: %s", e)
             return []
+
+    @staticmethod
+    def delete_file(file_path):
+        """
+        Delete a file.
+        params: file_path: The path to the file to delete.
+        """
+        try:
+            os.remove(file_path)
+            logger.info("File deleted successfully: %s", file_path)
+        except FileNotFoundError as e:
+            logger.error("Error: %s", e)
