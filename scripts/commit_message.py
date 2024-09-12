@@ -1,17 +1,6 @@
-import subprocess
-import sys
-import os
 from datetime import datetime
 from pipeline import PipelineUtils, ChatbotUtils, logger, FileUtils
 
-def run_command(command):
-    """Run a shell command and return the output."""
-    try:
-        result = subprocess.run(command, text=True, capture_output=True, check=True)
-        return result.stdout.strip(), result.returncode
-    except subprocess.CalledProcessError as e:
-        logger.exception("Error running command '%s': %s", " ".join(command), e)
-        sys.exit(e.returncode)
 
 def split_diff_by_file(diff_path:str) -> list:
     """
@@ -37,29 +26,6 @@ def split_diff_by_file(diff_path:str) -> list:
 
     return sections
 
-
-def run_checks(chatbot):
-    """
-    Run checks before creating the commit message.
-    params: chatbot: The chatbot object to interact with the AI model.
-    return: True if all checks pass, False otherwise.
-    """
-    security_check = chatbot.invoke("Confirm that the changes do not contain any sensitive information.")
-    vulnerability_check = chatbot.invoke("Confirm that the changes do not introduce any security vulnerabilities.")
-    code_quality_check = chatbot.invoke("Confirm that the changes meet the code quality standards.")
-    pylint_check = chatbot.invoke("Confirm that the changes pass the pylint check.")
-
-    # Simplified validation flow
-    for check, message in zip(
-        [security_check, vulnerability_check, code_quality_check, pylint_check],
-        ["Security", "Vulnerability", "Code Quality", "Pylint"]
-    ):
-        logger.info(f"{message} check: {check}")
-        response = input(f"Is the {message} check okay? (y/n): ").strip().lower()
-        if response == "n":
-            return False
-
-    return True
 
 def create_commit_message(chatbot) -> str:
     """
@@ -107,24 +73,23 @@ def main():
     # Step 2: Create chatbot to run checks and generate commit message
     args = PipelineUtils.get_args()
     args.type = "txt"
-
-    result = split_diff_by_file(args.path)
+    result = split_diff_by_file("/app/commit/diff.txt")
 
     commit_message = ""
 
     for i, section in enumerate(result, start=1):
         section_path = f"/app/commit/diff_{i}.txt"
-        FileUtils.write_file(section_path, section)
+        FileUtils.write_to_file(section_path, section)
         args.path = section_path
-        args.system_prompt_template = "You are AI model for 'git commit' message generation from content of 'diff.txt'."
+        args.system_prompt_template = f"You are AI model for 'git commit' message generation from content of '{section_path}'."
         args.collection_name = f"git_diff_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         chatbot = PipelineUtils.create_chatbot(args)
-        commit_message =+ create_commit_message(chatbot)
+        commit_message += "\n\n" + create_commit_message(chatbot)
         chatbot.delete_collection()
         chatbot.clear_chat_history()
         FileUtils.delete_file(section_path)
 
-    FileUtils.write_file("/app/commit/commit_message.txt", commit_message)
+    FileUtils.write_to_file("/app/commit/commit_message.txt", commit_message)
 
     logger.info("Commit message generated successfully.")
 
