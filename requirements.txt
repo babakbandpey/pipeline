@@ -129,6 +129,7 @@ typer
 typing-inspect
 typing_extensions
 ujson
+unstructured[md]
 urllib3
 uvicorn
 uvloop

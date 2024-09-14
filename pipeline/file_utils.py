@@ -12,7 +12,7 @@ class FileUtils:
         params: extension: The file extension to search for.
         params: exclude_dirs: Directories to exclude from the search.
         """
-        
+
         if exclude_dirs is None:
             exclude_dirs = [".env", ".git"]
 
@@ -91,21 +91,36 @@ class FileUtils:
             logger.error("Error: %s", e)
 
     @staticmethod
-    def clean_non_ascii_bytes(file_path, replacement_byte=b' '):
+    def clean_non_ascii_positions(file_path, positions, replacement_byte=b' '):
         """
-        Cleans non-ASCII bytes from a text file.
+        Cleans non-ASCII bytes from a text file at specified positions.
         params: file_path: The path to the text file.
+        params: positions: A list of tuples with positions and values of non-ASCII bytes.
         params: replacement_byte: The byte to replace non-ASCII bytes with.
         """
         try:
+            if len(replacement_byte) != 1:
+                raise ValueError("replacement_byte must be a single byte.")
+
+            replacement_byte_int = replacement_byte[0]  # Get the integer value of the replacement byte
+
             with open(file_path, 'rb') as file:
-                data = file.read()
-            cleaned_data = bytearray(replacement_byte if byte > 0x7F else byte for byte in data)
+                data = bytearray(file.read())
+
+            for pos, _ in positions:
+                if pos < len(data):
+                    data[pos] = replacement_byte_int
+
             with open(file_path, 'wb') as file:
-                file.write(cleaned_data)
+                file.write(data)
+
             logger.info("Non-ASCII bytes cleaned from file: %s", file_path)
         except FileNotFoundError as e:
-            logger.error("Error: %s", e)
+            logger.error("File not found: %s", e)
+        except ValueError as e:
+            logger.error("Value error: %s", e)
+        except Exception as e:
+            logger.error("An error occurred: %s", e)
 
     @staticmethod
     def find_non_ascii_bytes(file_path):

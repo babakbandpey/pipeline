@@ -13,7 +13,7 @@ Example usage:
 
 import subprocess
 import re
-from .chatbot_utils import logger
+from pipeline import logger
 from pprint import pprint
 
 class NmapScanner:
@@ -32,6 +32,15 @@ class NmapScanner:
         get_parsed_data(): Returns the parsed data from the Nmap scan.
     """
     def __init__(self, **kwargs):
+        """
+        kwargs:
+            target (str): The target IP address or hostname to scan.
+            flags (str): Additional flags to pass to Nmap.
+            ports (str): The ports to scan.
+            firewall (bool): Whether to bypass the firewall.
+            script (str): The Nmap script to run.
+            command (str): The full Nmap command to run.
+        """
         if 'target' not in kwargs:
             logger.error("Target IP address or hostname is required. kwargs: %s", kwargs)
             raise ValueError("Target IP address or hostname is required.")
@@ -48,7 +57,7 @@ class NmapScanner:
         attributes = {
             "target": lambda: self._kwargs.get("target"),
             "flags": lambda: self._kwargs.get("flags", ""),
-            "ports": lambda: f" -p {self._kwargs['ports']}" if self._kwargs.get("ports") and self._kwargs['ports'] != '-p-' else "-p-",
+            "ports": lambda: f" -p {self._kwargs['ports']}" if self._kwargs.get("ports") else "",
             "firewall": lambda: " -Pn " if self._kwargs.get("firewall") else "",
             "script": lambda: f" --script {self._kwargs['script']}" if self._kwargs.get("script") else ""
         }

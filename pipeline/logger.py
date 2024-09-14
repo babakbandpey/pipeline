@@ -1,4 +1,6 @@
-
+"""
+A module for logging messages with color based on the log level.
+"""
 
 import inspect
 import os
@@ -8,8 +10,6 @@ from .config import LOGGING_LEVEL
 def get_importing_file_name():
     """ Get the name of the file that imports this module. """
     stack = inspect.stack()
-    # stack[1] is the caller of the current function
-    # stack[2] is the caller of the caller of the current function
     frame = stack[2]
     module = inspect.getmodule(frame[0])
     if module:
@@ -47,22 +47,26 @@ class ColoredFormatter(logging.Formatter):
         Returns:
             str: The formatted log message with color added.
         """
-        # Get the original message
         message = super().format(record)
-
-        # Apply color based on the log level
         color = self.COLORS.get(record.levelname, self.RESET)
         message = f"{color}{record.levelname}: {message}{self.RESET}"
-
         return message
 
-# Create a handler
-handler = logging.StreamHandler()
-# Set the custom formatter
-formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
-handler.setFormatter(formatter)
+def initialize_logger() -> logging.Logger:
+    """ Initialize the logger with a custom handler and formatter. """
+    handler = logging.StreamHandler()
+    formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
+    handler.setFormatter(formatter)
 
-# Set up the root logger
-logger = logging.getLogger(get_importing_file_name())
-logger.setLevel(LOGGING_LEVEL)
-logger.addHandler(handler)
+    # Get the name of the importing file
+    importing_file_name = get_importing_file_name()
+
+    # Set up the logger
+    l = logging.getLogger(importing_file_name)
+    l.setLevel(LOGGING_LEVEL)
+    l.addHandler(handler)
+
+    return l
+
+# Initialize the logger and expose it as a module-level variable
+logger = initialize_logger()

@@ -159,7 +159,7 @@ class Retrieval(Pipeline):
                 self.logger.warning("Non-ASCII bytes found in file: %s", file_path)
                 self.logger.warning(non_ascii_positions)
                 if self.auto_clean:
-                    FileUtils.clean_non_ascii_bytes(file_path)
+                    FileUtils.clean_non_ascii_positions(file_path, non_ascii_positions)
                 else:
                     raise ValueError(
                         f"Non-ASCII bytes found in file: {file_path}."
@@ -170,7 +170,7 @@ class Retrieval(Pipeline):
             raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
         if os.path.isdir(self.path):
             for file in os.listdir(self.path):
-                if file.endswith(".txt"):
+                if file.endswith(".txt") or file.endswith(".md"):
                     file_path = os.path.join(self.path, file)
                     detect_and_clean(file_path)
         else:

@@ -62,7 +62,7 @@ RUN sed -i 's|master|main|g' /opt/exploit-database/searchsploit
 ENV PATH="/usr/local/bin:$PATH"
 
 # Update SearchSploit
-RUN searchsploit -u || echo "Update process completed with errors"
+RUN timeout 60 searchsploit -u || echo "Update process completed with errors"
 
 # Installing net-tools
 RUN apt-get install -y net-tools

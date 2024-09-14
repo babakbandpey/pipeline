@@ -124,6 +124,13 @@ class PipelineUtils():
             help="The collection name",
             default=secrets.token_hex(16))
 
+        parser.add_argument(
+            "--auto_clean",
+            action="store_true",
+            required=False,
+            help="Auto clean the non ascii characters",
+            default=False)
+
         return parser.parse_args()
 
 
@@ -280,38 +287,15 @@ class PipelineUtils():
 
         base_url, openai_api_key = PipelineUtils.get_base_url_and_api_key(args)
 
-        if hasattr(args, 'collection_name') and args.collection_name is not None:
-            collection_name = args.collection_name
-        else:
-            collection_name = None
+        _kwargs = {}
 
-        if hasattr(args, 'git_url') and args.git_url is not None:
-            git_url = args.git_url
-        else:
-            git_url = None
+        for key, value in vars(args).items():
+            _kwargs[key] = value
 
-        if hasattr(args, 'path') and args.path is not None:
-            path = args.path
-        else:
-            path = None
+        _kwargs["base_url"] = base_url
+        _kwargs["openai_api_key"] = openai_api_key
 
-        if hasattr(args, 'url') and args.url is not None:
-            url = args.url
-        else:
-            url = None
-
-        return {
-            "base_url": base_url,
-            "model": args.model,
-            "openai_api_key": openai_api_key,
-            "collection_name": collection_name,
-            "git_url": git_url,
-            "path": path,
-            "url": url,
-            "prompt": args.prompt,
-            "system_prompt_template": args.system_prompt_template,
-            "output_type": args.output_type
-        }
+        return _kwargs
 
 
     @staticmethod

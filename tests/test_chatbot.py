@@ -12,7 +12,8 @@ def chatbot():
     """
     return Chatbot(
         base_url="https://api.openai.com/v1/",
-        model="gpt-4o", openai_api_key=OPENAI_API_KEY
+        model="gpt-4o",
+        openai_api_key=OPENAI_API_KEY
     )
 
 def test_chatbot_initialization(chatbot):
