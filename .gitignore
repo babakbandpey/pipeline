@@ -5,7 +5,6 @@ env/
 **/chat_history*.md
 .env
 pipeline.egg-info/
-diff.txt
-commit_message.txt
 policies/
 **/*.log
+commit/*.txt
