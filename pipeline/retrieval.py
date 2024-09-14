@@ -19,13 +19,13 @@ class Retrieval(Pipeline):
     Pipeline for a chatbot that retrieves documents and answers questions
     based on the retrieved documents.
     """
-    def setup_chat_prompt(self, system_template=None, output_type=None):
+    def setup_chat_prompt(self, system_prompt_template=None, output_type=None):
         """
         Sets up the prompt for the chatbot.
         params: system_template: The system template to use.
         """
-        if system_template is None:
-            system_template = """
+        if system_prompt_template is None:
+            system_prompt_template = """
             Answer the user's questions based on the below context.
             If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
 
@@ -34,19 +34,19 @@ class Retrieval(Pipeline):
             </context>
             """
 
-        if not isinstance(system_template, str):
-            self.logger.error("system_template must be a string %s", system_template)
+        if not isinstance(system_prompt_template, str):
+            self.logger.error("system_template must be a string %s", system_prompt_template)
             raise ValueError("system_template must be a string")
 
-        if "{context}" not in system_template:
-            system_template = system_template + """
+        if "{context}" not in system_prompt_template:
+            system_prompt_template = system_prompt_template + """
 
             <context>
             {context}
             </context>
             """
 
-        super().setup_chat_prompt(system_template, output_type)
+        super().setup_chat_prompt(system_prompt_template, output_type)
 
 
     def setup_chain(self, search_type=None, search_kwargs=None):
@@ -159,7 +159,7 @@ class Retrieval(Pipeline):
                 self.logger.warning("Non-ASCII bytes found in file: %s", file_path)
                 self.logger.warning(non_ascii_positions)
                 if self.auto_clean:
-                    FileUtils.clean_non_ascii_bytes(file_path)
+                    FileUtils.clean_non_ascii_positions(file_path, non_ascii_positions)
                 else:
                     raise ValueError(
                         f"Non-ASCII bytes found in file: {file_path}."
@@ -170,7 +170,7 @@ class Retrieval(Pipeline):
             raise ValueError(f"Invalid path: {self.path}. No such file or directory.")
         if os.path.isdir(self.path):
             for file in os.listdir(self.path):
-                if file.endswith(".txt"):
+                if file.endswith(".txt") or file.endswith(".md"):
                     file_path = os.path.join(self.path, file)
                     detect_and_clean(file_path)
         else:

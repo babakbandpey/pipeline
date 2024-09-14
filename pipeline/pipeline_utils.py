@@ -4,12 +4,14 @@ Shared utility functions.
 
 import datetime
 import os
+import secrets
 import sys
 import argparse
-from typing import Union
 from .config import OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
 from .rag_factory import RAGFactory
 from .retrieval import Retrieval
+from .chatbot_utils import logger
+
 
 class PipelineUtils():
     """ Utility class for the pipeline. """
@@ -30,7 +32,7 @@ class PipelineUtils():
             type=str,
             required=False,
             help="Model to use.",
-            default="gpt-4o"
+            default="gpt-4o-mini"
         )
 
         parser.add_argument(
@@ -43,7 +45,8 @@ class PipelineUtils():
             "python",
             "web",
             "pdf",
-            "json"
+            "json",
+            "md",
             ],
             help="Class type to use.",
             default="chat"
@@ -58,6 +61,13 @@ class PipelineUtils():
         )
 
         parser.add_argument(
+            '--output-path',
+            type=str,
+            required=False,
+            help='Path to save the output file.',
+        )
+
+        parser.add_argument(
             "--url",
             type=str,
             required=False,
@@ -65,34 +75,43 @@ class PipelineUtils():
             default=None
         )
 
-        parser.add_argument("--git_url",
+        parser.add_argument(
+            "--git_url",
 			type=str,
 			required=False,
 			help="The url to a git repo to be used with the type PythonRAG",
 			default=None)
-        parser.add_argument("--openai_api_key",
+
+        parser.add_argument(
+            "--openai_api_key",
 			type=str,
 			required=False,
 			default=OPENAI_API_KEY,
 			help="OpenAI API key.")
-        parser.add_argument("--example",
+
+        parser.add_argument(
+            "--example",
 			action="store_true" ,
 			required=False,
 			help="Showing some examples of how to run the script",
 			default=None)
-        parser.add_argument("--prompt",
+
+        parser.add_argument(
+            "--prompt",
 			type=str ,
 			required=False,
 			help="The prompt",
 			default="Say something useful about the content")
 
-        parser.add_argument("--system_prompt_template",
+        parser.add_argument(
+            "--system_prompt_template",
             type=str ,
             required=False,
             help="The system prompt template",
             default=None)
 
-        parser.add_argument("--output_type",
+        parser.add_argument(
+            "--output_type",
             type=str ,
             required=False,
             help="The output type",
@@ -105,6 +124,42 @@ class PipelineUtils():
                 'html',
                 'markdown'
             ])
+
+        parser.add_argument(
+            "--collection_name",
+            type=str,
+            required=False,
+            help="The collection name",
+            default=secrets.token_hex(16))
+
+        parser.add_argument(
+            "--auto_clean",
+            action="store_true",
+            required=False,
+            help="Auto clean the non ascii characters",
+            default=False)
+
+        parser.add_argument(
+            '--create-questionnaire',
+            action='store_true',
+            help='Create an questionnaire based on the created')
+
+        parser.add_argument(
+            '--remove-duplicates',
+            action='store_true',
+            help='Remove duplicates from the text')
+
+        parser.add_argument(
+            '--repair-md',
+            action='store_true',
+            help='Repare the markdown file')
+
+        parser.add_argument(
+            '--deep-organize',
+            action='store_true',
+            help='Deep organize the text')
+
+
         return parser.parse_args()
 
 
@@ -129,15 +184,15 @@ class PipelineUtils():
             with open(path, "w", encoding='utf-8') as file:
                 for index, message in enumerate(chatbot.chat_history.messages):
                     file.write(f"{index + 1}. {message}\n")
-            print(f"Chat history saved to {filename}")
+            logger.info("Chat history saved to %s", filename)
 
 
         def default_action():
-            print("\n\n++Chatbot: ", chatbot.invoke(prompt))
+            logger.info("\n\n++Chatbot: %s", chatbot.invoke(prompt))
 
 
         def exit_chat():
-            print("\n\nGoodbye!\n\n")
+            logger.info("\n\nGoodbye!\n\n")
             sys.exit(0)
 
 
@@ -147,11 +202,11 @@ class PipelineUtils():
             :return: True if the chat history is shown, False otherwise.
             """
             if not chatbot.chat_history.messages:
-                print("No chat history.")
+                logger.info("No chat history.")
                 return False
 
             for index, message in enumerate(chatbot.chat_history.messages):
-                print(f"{index + 1}. {message}")
+                logger.info("%d. %s", index + 1, message)
 
             return True
 
@@ -168,11 +223,11 @@ class PipelineUtils():
 
                 if number:
                     if chatbot.modify_chat_history(number - 1):
-                        print("Message deleted.")
+                        logger.info("Message deleted.")
                     else:
-                        print("Invalid number provided.")
+                        logger.info("Invalid number provided.")
                 else:
-                    print("Invalid number provided.")
+                    logger.info("Invalid number provided.")
 
 
         def print_commands_help():
@@ -230,17 +285,26 @@ class PipelineUtils():
         :return: The base URL and the API key.
         """
 
+        url_endpoint = None
+        openai_api_key = None
+
         if args.model == "llama3":
-            return "http://localhost:11434", None
+            url_endpoint, openai_api_key = "http://localhost:11434", None
         if args.model == "phi3":
-            return "http://localhost:11434", None
+            url_endpoint, openai_api_key = "http://localhost:11434", None
         if "gpt" in args.model:
-            return "https://api.openai.com/v1/", args.openai_api_key
+            url_endpoint, openai_api_key = "https://api.openai.com/v1/", args.openai_api_key
         if "azure" in args.model:
-            return AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
+            url_endpoint, openai_api_key = AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
+        if "lmstudio" in args.model:
+            url_endpoint, openai_api_key = "http://localhost:1234/v1", "lm-studio"
 
-        return "http://localhost:1234/v1", None
+        if url_endpoint is None:
+            logger.error("Model not found for %s.", args.model)
+            logger.info("Models: llama3, phi3, gpt-4o, gpt-4, gpt-3, azure, lmstudio")
+            sys.exit(1)
 
+        return url_endpoint, openai_api_key
 
     @staticmethod
     def get_kwargs(args: argparse.Namespace) -> dict:
@@ -252,38 +316,15 @@ class PipelineUtils():
 
         base_url, openai_api_key = PipelineUtils.get_base_url_and_api_key(args)
 
-        if hasattr(args, 'collection_name') and args.collection_name is not None:
-            collection_name = args.collection_name
-        else:
-            collection_name = None
+        _kwargs = {}
 
-        if hasattr(args, 'git_url') and args.git_url is not None:
-            git_url = args.git_url
-        else:
-            git_url = None
+        for key, value in vars(args).items():
+            _kwargs[key] = value
 
-        if hasattr(args, 'path') and args.path is not None:
-            path = args.path
-        else:
-            path = None
+        _kwargs["base_url"] = base_url
+        _kwargs["openai_api_key"] = openai_api_key
 
-        if hasattr(args, 'url') and args.url is not None:
-            url = args.url
-        else:
-            url = None
-
-        return {
-            "base_url": base_url,
-            "model": args.model,
-            "openai_api_key": openai_api_key,
-            "collection_name": collection_name,
-            "git_url": git_url,
-            "path": path,
-            "url": url,
-            "prompt": args.prompt,
-            "system_prompt_template": args.system_prompt_template,
-            "output_type": args.output_type
-        }
+        return _kwargs
 
 
     @staticmethod
@@ -294,22 +335,23 @@ class PipelineUtils():
         :return: The chatbot.
         """
 
+        if not args:
+            args = PipelineUtils.get_args()
+            args.type = "chat"
+
+        logger.debug("Arguments: %s", args)
+
         if args.example:
             PipelineUtils.print_examples()
             sys.exit(0)
 
         kwargs = PipelineUtils.get_kwargs(args)
 
-        if args.type == "chat":
-            return RAGFactory.get_rag_class("chat", **kwargs)
-
-        if args.type == "txt":
-            return RAGFactory.get_rag_class("txt", **kwargs)
-
-        if args.type == "python":
+        if args.type == "py":
             base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             exclude_patterns = [
                 "env/**/*",
+                "env1/**/*",
                 "venv/**/*",
                 ".git/**/*",
                 ".idea/**/*",
@@ -323,13 +365,9 @@ class PipelineUtils():
 
             return RAGFactory.get_rag_class("py", **kwargs)
 
-        if args.type == "web":
-            return RAGFactory.get_rag_class("web", **kwargs)
-
-        if args.type == "pdf":
-            return RAGFactory.get_rag_class("pdf", **kwargs)
-
-        if args.type == "json":
-            return RAGFactory.get_rag_class("json", **kwargs)
-
-        return None
+        try:
+            return RAGFactory.get_rag_class(args.type, **kwargs)
+        except ValueError as exc:
+            logger.error("Type not found for %s.", args.type)
+            logger.info("Types: chat, txt, py, web, pdf, json")
+            raise ValueError(f"Type not found for {args.type}.") from exc
