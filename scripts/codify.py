@@ -3,7 +3,7 @@ This script is a simple AI Agent which will codify a piece text into Policies an
 """
 
 import json
-from pipeline import PipelineUtils, ChatbotUtils
+from pipeline import PipelineUtils, logger
 
 def process_answer(answer, chatbot):
     """
@@ -40,7 +40,7 @@ def process_answer(answer, chatbot):
                 break
 
         except ValueError as e:
-            ChatbotUtils.logger().exception("Error: %s", e)
+            logger.error("Error: %s", e)
             break
 
 def main():
@@ -66,7 +66,7 @@ def main():
                 chatbot
             )
     except KeyboardInterrupt:
-        ChatbotUtils.logger().exception("Goodbye!")
+        logger.info("Goodbye!")
 
 if __name__ == "__main__":
     main()

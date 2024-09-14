@@ -25,7 +25,6 @@ class TxtRAG(Retrieval):
         """
         super().__init__(**kwargs)
         self.path = kwargs.get('path', None)
-        self.auto_clean = kwargs.get('auto_clean', False)
         if not self.path:
             raise ValueError("The path parameter is required.")
         self.documents = []

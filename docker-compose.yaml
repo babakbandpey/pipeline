@@ -1,0 +1,11 @@
+services:
+  pipeline:
+    build: .
+    volumes:
+      - ./:/app
+    network_mode: "host"
+    ports:
+      - "1234:1234"
+    command: ["sh", "-c", "service postgresql start && msfconsole"]
+    stdin_open: true
+    tty: true

@@ -19,18 +19,15 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
-from .config import LOGGING_LEVEL
+from .logger import logger
 
 
 class PipelineConfig:
     """ Configuration for the pipeline. """
     def __init__(self, **kwargs):
-
         self._kwargs = kwargs
-        self.logger = None
         self.session_id = None
-
-        self.setup_logging(LOGGING_LEVEL)
+        self.logger = logger
         self.generate_session_id()
 
 
@@ -52,15 +49,6 @@ class PipelineConfig:
         return None
 
 
-    def setup_logging(self, level=logging.INFO):
-        """
-        Sets up logging for the pipeline.
-        params: level: The logging level to use.
-        """
-        logging.basicConfig(level=level)
-        self.logger = logging.getLogger(__name__)
-
-
     def generate_session_id(self):
         """
         Generates a unique session ID.
@@ -79,28 +67,27 @@ class PipelineSetup(PipelineConfig):
         self.vector_store = None
 
         self.setup_chat()
-        self.setup_chat_prompt()
+        self.setup_chat_prompt(self.system_prompt_template, self.output_type)
 
 
-    def setup_chat_prompt(self, system_template: str = None, output_type: str = None):
+    def setup_chat_prompt(self, system_prompt_template: str = None, output_type: str = None):
         """
         Sets up the chat prompt for the chatbot.
         params: system_template: The system template to use.
         returns: The initialized ChatPromptTemplate object.
         """
-        if system_template is None:
-            system_template = """You are a helpful assistant.
+        if system_prompt_template is None:
+            system_prompt_template = """You are a helpful assistant.
             Answer all questions to the best of your ability."""
-        elif not isinstance(system_template, str):
+        elif not isinstance(system_prompt_template, str):
             raise ValueError("system_template must be a string")
 
         if output_type:
-            if output_type.upper() in ["TEXT", "JSON", 'PYTHON']:
-                system_template += f' Retun the response as {output_type}.'
+            system_prompt_template += f' Retun the response as {output_type}.'
 
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", system_template),
+                ("system", system_prompt_template),
                 MessagesPlaceholder(variable_name="chat_history"),
                 ("user", "{input}"),
             ]
@@ -171,7 +158,6 @@ class PipelineSetup(PipelineConfig):
         params: model: The name of the model to use.
         returns: The initialized Ollama object.
         """
-
         try:
             if self.openai_api_key:
                 # OpenAI
