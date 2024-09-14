@@ -1,5 +1,5 @@
 env/
-env1/
+.env1/
 **/*.pyc
 **/__pycache__/
 **/chat_history*.md
