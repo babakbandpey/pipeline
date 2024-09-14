@@ -1,4 +1,6 @@
-# file: pipeline/rag_factory.py
+"""
+Factory class for creating RAG objects based on _type.
+"""
 
 import importlib
 from .retrieval import Retrieval
@@ -9,6 +11,8 @@ rag_mapping = {
     'py': ('pipeline.py_rag', 'PyRAG'),
     'web': ('pipeline.web_rag', 'WebRAG'),
     'pdf': ('pipeline.pdf_rag', 'PdfRAG'),
+    'json': ('pipeline.json_rag', 'JsonRAG'),
+    'md': ('pipeline.md_rag', 'MdRAG'),
     'json': ('pipeline.json_rag', 'JsonRAG'),
     'md': ('pipeline.md_rag', 'MdRAG'),
 }

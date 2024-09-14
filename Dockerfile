@@ -7,15 +7,12 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install pipeline as package
-RUN pip install -e .
-
-# Update and install dependencies
+# Install system dependencies
 RUN apt-get update && \
-    apt-get install -y git nmap sqlmap whatweb dirb gobuster hydra-gtk curl gnupg2 postgresql libgmp-dev zlib1g-dev libpcap-dev build-essential libreadline-dev libssl-dev libpq-dev libsqlite3-dev libffi-dev libyaml-dev libxslt1-dev libxml2-dev libcurl4-openssl-dev software-properties-common ruby ruby-dev ncat hashcat john unzip && \
+    apt-get install -y git nmap sqlmap whatweb dirb gobuster hydra-gtk curl gnupg2 \
+    postgresql libgmp-dev zlib1g-dev libpcap-dev build-essential libreadline-dev \
+    libssl-dev libpq-dev libsqlite3-dev libffi-dev libyaml-dev libxslt1-dev libxml2-dev \
+    libcurl4-openssl-dev software-properties-common ruby ruby-dev ncat hashcat john unzip pandoc && \
     apt-get clean
 
 # Install Metasploit Framework
@@ -37,10 +34,21 @@ RUN curl -L -o /tmp/wordlists.zip https://github.com/kkrypt0nn/wordlists/archive
     mv /tmp/wordlists-main /usr/share/wordlists && \
     rm /tmp/wordlists.zip
 
-RUN apt-get install -y fish && \
+# Install fish shell and pylint
+RUN apt-get install -y fish pylint && \
     chsh -s /usr/bin/fish
 
-RUN apt-get install -y pylint
+# Create a Python virtual environment
+RUN python3 -m venv /app/env
+
+# Activate the virtual environment and install pip in it
+RUN /app/env/bin/pip install --upgrade pip
+
+# Install dependencies in the virtual environment
+RUN /app/env/bin/pip install --no-cache-dir -r requirements.txt
+
+# Install the pipeline package in editable mode
+RUN /app/env/bin/pip install -e .
 
 # Clone the SearchSploit repository
 RUN git clone -b main https://gitlab.com/exploit-database/exploitdb.git /opt/exploit-database
@@ -54,21 +62,24 @@ RUN cp -n /opt/exploit-database/.searchsploit_rc ~/
 # Modify the searchsploit script to remove sudo and fix paths
 RUN sed -i 's/sudo //g' /opt/exploit-database/searchsploit
 RUN sed -i 's|/opt/exploitdb|/opt/exploit-database|g' /opt/exploit-database/searchsploit
-
-# Ensure the correct branch is used in the searchsploit script
 RUN sed -i 's|master|main|g' /opt/exploit-database/searchsploit
 
 # Set environment variables if needed
 ENV PATH="/usr/local/bin:$PATH"
 
 # Update SearchSploit
-RUN timeout 60 searchsploit -u || echo "Update process completed with errors"
+# RUN timeout 60 searchsploit -u || echo "Update process completed with errors"
 
 # Installing net-tools
+# Install additional tools like net-tools
 RUN apt-get install -y net-tools
 
 # Expose the necessary port for Metasploit
 EXPOSE 3790
+
+# Ensure that the correct environment is activated by default
+ENV VIRTUAL_ENV=/app/env
+ENV PATH="/app/env/bin:$PATH"
 
 # Set the entrypoint to an interactive shell
 CMD ["bash"]

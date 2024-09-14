@@ -19,13 +19,13 @@ class Retrieval(Pipeline):
     Pipeline for a chatbot that retrieves documents and answers questions
     based on the retrieved documents.
     """
-    def setup_chat_prompt(self, system_template=None, output_type=None):
+    def setup_chat_prompt(self, system_prompt_template=None, output_type=None):
         """
         Sets up the prompt for the chatbot.
         params: system_template: The system template to use.
         """
-        if system_template is None:
-            system_template = """
+        if system_prompt_template is None:
+            system_prompt_template = """
             Answer the user's questions based on the below context.
             If the context doesn't contain any relevant information to the question, don't make something up and just say "I don't know":
 
@@ -34,19 +34,19 @@ class Retrieval(Pipeline):
             </context>
             """
 
-        if not isinstance(system_template, str):
-            self.logger.error("system_template must be a string %s", system_template)
+        if not isinstance(system_prompt_template, str):
+            self.logger.error("system_template must be a string %s", system_prompt_template)
             raise ValueError("system_template must be a string")
 
-        if "{context}" not in system_template:
-            system_template = system_template + """
+        if "{context}" not in system_prompt_template:
+            system_prompt_template = system_prompt_template + """
 
             <context>
             {context}
             </context>
             """
 
-        super().setup_chat_prompt(system_template, output_type)
+        super().setup_chat_prompt(system_prompt_template, output_type)
 
 
     def setup_chain(self, search_type=None, search_kwargs=None):

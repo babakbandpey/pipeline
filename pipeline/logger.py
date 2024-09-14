@@ -3,6 +3,7 @@ A module for logging messages with color based on the log level.
 """
 
 import inspect
+from logging.handlers import RotatingFileHandler
 import os
 import logging
 from .config import LOGGING_LEVEL
@@ -65,6 +66,21 @@ def initialize_logger() -> logging.Logger:
     l = logging.getLogger(importing_file_name)
     l.setLevel(LOGGING_LEVEL)
     l.addHandler(handler)
+
+    # Get the log file path (change the path as needed)
+    log_file_path = os.path.join(os.getcwd(), 'app.log')  # Current working directory
+
+    # Create a file handler to save logs to a file
+    file_handler = RotatingFileHandler(log_file_path, maxBytes=5000000, backupCount=5)
+    file_formatter = logging.Formatter('%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s')
+    file_handler.setFormatter(file_formatter)
+
+    # Set the file handler log level (can be different from the stream handler)
+    file_handler.setLevel(LOGGING_LEVEL)
+
+    # Set up the root logger
+
+    l.addHandler(file_handler)
 
     return l
 
