@@ -5,7 +5,6 @@ This script reads file's content and organizes it in a structured way.
 import datetime
 import json
 import os
-import sys
 from typing import Union
 from pipeline import PipelineUtils, FileUtils, ChatbotUtils, logger
 

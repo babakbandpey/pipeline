@@ -25,7 +25,7 @@ load_dotenv()
 OPENAI_API_KEY = None
 AZURE_OPENAI_ENDPOINT = None
 AZURE_OPENAI_API_KEY_1 = None
-LOGGING_LEVEL = logging.DEBUG
+LOGGING_LEVEL = logging.INFO
 
 logging.basicConfig(
     level=LOGGING_LEVEL,

@@ -56,7 +56,7 @@ class ColoredFormatter(logging.Formatter):
 def initialize_logger() -> logging.Logger:
     """ Initialize the logger with a custom handler and formatter. """
     handler = logging.StreamHandler()
-    formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
+    formatter = ColoredFormatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s ')
     handler.setFormatter(formatter)
 
     # Get the name of the importing file
