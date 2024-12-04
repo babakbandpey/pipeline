@@ -136,6 +136,7 @@ def main():
     for i, section in enumerate(result, start=1):
         section_path = f"/app/commit/diff_{i}.txt"
         FileUtils.write_to_file(section_path, section)
+        args.type = "txt"
         args.path = section_path
         args.system_prompt_template = f"You are AI model for 'git commit' message generation from content of '{section_path}'."
         args.collection_name = f"git_diff_{datetime.now().strftime('%Y%m%d_%H%M%S')}"

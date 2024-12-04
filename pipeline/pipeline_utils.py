@@ -137,7 +137,7 @@ class PipelineUtils():
             action="store_true",
             required=False,
             help="Auto clean the non ascii characters",
-            default=False)
+            default=True)
 
         parser.add_argument(
             '--create-questionnaire',

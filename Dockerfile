@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get install -y git nmap sqlmap whatweb dirb gobuster hydra-gtk curl gnupg2 \
     postgresql libgmp-dev zlib1g-dev libpcap-dev build-essential libreadline-dev \
     libssl-dev libpq-dev libsqlite3-dev libffi-dev libyaml-dev libxslt1-dev libxml2-dev \
-    libcurl4-openssl-dev software-properties-common ruby ruby-dev ncat hashcat john unzip pandoc && \
+    libcurl4-openssl-dev software-properties-common ruby ruby-dev ncat hashcat john unzip pandoc default-jre && \
     apt-get clean
 
 # Install Metasploit Framework

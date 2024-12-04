@@ -8,3 +8,4 @@ pipeline.egg-info/
 policies/
 **/*.log
 commit/*.txt
+yt/**
