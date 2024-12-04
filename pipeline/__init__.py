@@ -4,7 +4,7 @@ author: Babak Bandpey
 Description: The pipeline module provides a high-level interface for running a chatbot.
 """
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __author__ = 'Babak Bandpey <bb@cocode.dk>'
 
 # Essential imports
