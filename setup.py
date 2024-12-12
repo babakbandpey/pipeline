@@ -61,8 +61,8 @@ long_description = read_long_description('README.md')
 
 setup(
     name='pipeline',
-    version='0.5.0',
-    packages=find_packages(include=['pipeline', 'pipeline.*']),
+    version='0.6',
+    packages=find_packages(),
     install_requires=required,
     python_requires='>=3.11',
     author='Babak Bandpey',
@@ -71,9 +71,9 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/babakbandpey/pipeline',
-    include_package_data=True,  # Include non-Python files specified in MANIFEST.in
+    include_package_data=True,
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.11',
