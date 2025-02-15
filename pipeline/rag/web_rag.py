@@ -7,8 +7,8 @@ documents from a website and answers questions based on the retrieved documents.
 """
 
 from langchain_community.document_loaders import WebBaseLoader
-from .retrieval import Retrieval
-from .chatbot_utils import ChatbotUtils
+from pipeline.retrieval import Retrieval
+from pipeline.utils.chatbot_utils import ChatbotUtils
 
 class WebRAG(Retrieval):
     """

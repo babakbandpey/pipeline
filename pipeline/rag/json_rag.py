@@ -8,7 +8,7 @@ import os
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.document_loaders.json_loader import JSONLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .retrieval import Retrieval
+from pipeline.retrieval import Retrieval
 
 class JsonRAG(Retrieval):
     """

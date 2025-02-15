@@ -7,9 +7,9 @@ import os
 import secrets
 import sys
 import argparse
-from .config import OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
-from .rag_factory import RAGFactory
-from .retrieval import Retrieval
+from ..config import OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY_1
+from pipeline.rag_factory import RAGFactory
+from pipeline.retrieval import Retrieval
 from .chatbot_utils import logger
 
 
@@ -184,11 +184,11 @@ class PipelineUtils():
             with open(path, "w", encoding='utf-8') as file:
                 for index, message in enumerate(chatbot.chat_history.messages):
                     file.write(f"{index + 1}. {message}\n")
-            logger.info("Chat history saved to %s", filename)
+            logger.debug("Chat history saved to %s", filename)
 
 
         def default_action():
-            logger.info("\n\n++Chatbot: %s", chatbot.invoke(prompt))
+            print(chatbot.invoke(prompt))
 
 
         def exit_chat():

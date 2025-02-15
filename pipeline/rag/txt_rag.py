@@ -8,8 +8,8 @@ import json
 import os
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .retrieval import Retrieval
-from .chatbot_utils import ChatbotUtils
+from pipeline.retrieval import Retrieval
+from pipeline.utils.chatbot_utils import ChatbotUtils
 
 
 class TxtRAG(Retrieval):

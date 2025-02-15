@@ -8,7 +8,7 @@ This module contains the MdRAG class.
 import os
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .retrieval import Retrieval
+from pipeline.retrieval import Retrieval
 
 
 class MdRAG(Retrieval):

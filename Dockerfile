@@ -13,7 +13,6 @@ RUN apt-get update && \
     fish \
     pylint
 
-
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
@@ -22,13 +21,14 @@ RUN pip install --upgrade pip && \
 
 # Set fish as default shell
 SHELL ["/usr/bin/fish", "--command"]
-CMD ["fish"]
 
-# Set up git
-RUN apt-get install -y git && \
-    git config --global --add safe.directory /app
+# Set up git with proper permissions
+RUN git config --system --add safe.directory '*' && \
+    git config --system --add safe.directory /app
 
 # Fix SSH permissions when container starts
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["fish"]

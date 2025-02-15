@@ -5,7 +5,7 @@ The user can load PDF documents from a local directory
 import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from .retrieval import Retrieval
+from pipeline.retrieval import Retrieval
 
 class PdfRAG(Retrieval):
     """

@@ -10,7 +10,7 @@ from git import Repo
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
-from .retrieval import Retrieval
+from pipeline.retrieval import Retrieval
 
 class PyRAG(Retrieval):
     """

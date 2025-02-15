@@ -6,7 +6,7 @@ import inspect
 from logging.handlers import RotatingFileHandler
 import os
 import logging
-from .config import LOGGING_LEVEL
+from pipeline.config import LOG_LEVEL
 
 def get_importing_file_name():
     """ Get the name of the file that imports this module. """
@@ -64,7 +64,7 @@ def initialize_logger() -> logging.Logger:
 
     # Set up the logger
     l = logging.getLogger(importing_file_name)
-    l.setLevel(LOGGING_LEVEL)
+    l.setLevel(LOG_LEVEL)
     l.addHandler(handler)
 
     # Get the log file path (change the path as needed)
@@ -76,7 +76,7 @@ def initialize_logger() -> logging.Logger:
     file_handler.setFormatter(file_formatter)
 
     # Set the file handler log level (can be different from the stream handler)
-    file_handler.setLevel(LOGGING_LEVEL)
+    file_handler.setLevel(LOG_LEVEL)
 
     # Set up the root logger
 
