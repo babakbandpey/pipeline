@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM python:slim
 
 # Set the working directory
 WORKDIR /app
@@ -13,18 +13,12 @@ RUN apt-get update && \
     fish \
     pylint
 
-# Create a Python virtual environment
-RUN python3 -m venv /app/env
 
-# Install pip requirements
+# Install dependencies
 COPY requirements.txt .
-RUN /app/env/bin/pip install --upgrade pip && \
-    /app/env/bin/pip install -r requirements.txt && \
-    /app/env/bin/pip install python-dotenv cryptography
-
-# Set environment variables
-ENV VIRTUAL_ENV=/app/env
-ENV PATH="/app/env/bin:$PATH"
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install python-dotenv cryptography
 
 # Set fish as default shell
 SHELL ["/usr/bin/fish", "--command"]

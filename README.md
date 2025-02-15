@@ -18,7 +18,53 @@ A high-level interface for building chatbots with RAG (Retrieval-Augmented Gener
 
 ## Installation
 
-### Recommended: Docker Setup (All Platforms)
+Choose the appropriate installation method based on your needs:
+
+### Using Pipeline in Your Project
+
+This is the recommended method when using Pipeline as a dependency in your project:
+
+1. Install from GitHub:
+```bash
+pip install git+https://github.com/babakbandpey/pipeline.git
+```
+
+2. Or add to requirements.txt:
+```text
+git+https://github.com/babakbandpey/pipeline.git
+```
+
+This installs:
+- Core Pipeline package with all RAG implementations
+  - WebRAG: Web content analysis
+  - PyRAG: Python code analysis
+  - TxtRAG: Text file processing
+  - PdfRAG: PDF document analysis
+  - JsonRAG: JSON data processing
+  - MdRAG: Markdown file analysis
+- Utility modules
+  - FileUtils: File operations
+  - ChatbotUtils: Chatbot helpers
+  - PipelineUtils: Configuration tools
+
+Dependencies:
+- langchain and related packages
+- openai (optional)
+- chromadb for vector storage
+- other utility packages
+
+### Development Setup with Docker
+
+Use this setup when:
+- Developing Pipeline itself
+- Running Pipeline as a standalone service
+- Contributing to the project
+
+Benefits:
+- Isolated development environment
+- Consistent dependencies across platforms
+- Integrated Git and SSH configuration
+- Hot-reloading for development
 
 1. Clone the repository:
 ```bash

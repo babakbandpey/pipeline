@@ -12,7 +12,7 @@ services:
     network_mode: "host"  # To access external Ollama
     command: >
       fish -c "
-        pip install -e . &&
+        pip install -e ".[dev]" &&
         fish
       "
     stdin_open: true   # Keep STDIN open
