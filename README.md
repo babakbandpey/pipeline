@@ -19,12 +19,55 @@ A high-level interface for building chatbots with RAG (Retrieval-Augmented Gener
 ## Installation
 
 ### Recommended: Docker Setup (All Platforms)
-```bash
-# Build and start containers
-docker-compose up --build -d
 
-# Open interactive shell
-docker-compose exec pipeline fish
+1. Clone the repository:
+```bash
+# Clone repository
+git clone https://github.com/babakbandpey/pipeline.git
+cd pipeline
+```
+
+2. Copy and configure environment:
+```bash
+cp .env-demo .env
+# Edit .env with your settings
+```
+
+3. Run development setup:
+```bash
+# Run setup script (first time and after pulling updates)
+chmod +x dev.sh
+./dev.sh
+```
+
+The setup script will:
+- Check/create .env file
+- Configure SSH for multiple GitHub accounts
+- Build and start Docker containers
+- Install package in development mode
+- Configure Git settings
+- Open interactive shell
+
+### Git Configuration for Multiple Accounts
+
+1. Define Git and SSH settings in `.env`:
+```bash
+# Git Config
+GIT_AUTHOR_NAME=Your Name
+GIT_AUTHOR_EMAIL=your@email.com
+GIT_SSH_KEY_WORK=~/.ssh/id_rsa_work      # Work SSH key path
+GIT_SSH_KEY_PERSONAL=~/.ssh/id_rsa_personal  # Personal SSH key path
+GIT_SSH_HOST_WORK=github.com-work        # SSH config host for work
+GIT_SSH_HOST_PERSONAL=github.com-personal # SSH config host for personal
+```
+
+2. SSH config will be auto-generated from .env settings
+```bash
+# Generated ~/.ssh/config
+Host ${GIT_SSH_HOST_WORK}
+    HostName github.com
+    User git
+    IdentityFile ${GIT_SSH_KEY_WORK}
 ```
 
 ### Alternative: Direct Installation (Linux/MacOS)

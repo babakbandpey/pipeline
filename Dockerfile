@@ -29,3 +29,12 @@ ENV PATH="/app/env/bin:$PATH"
 # Set fish as default shell
 SHELL ["/usr/bin/fish", "--command"]
 CMD ["fish"]
+
+# Set up git
+RUN apt-get install -y git && \
+    git config --global --add safe.directory /app
+
+# Fix SSH permissions when container starts
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
