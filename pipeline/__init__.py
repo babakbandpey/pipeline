@@ -1,10 +1,17 @@
 """
-file: pipeline/__init__.py
-author: Babak Bandpey
-Description: The pipeline module provides a high-level interface for running a chatbot.
+Pipeline: A high-level interface for running a chatbot.
+
+This package provides tools and utilities for building and running chatbots
+with features like RAG (Retrieval-Augmented Generation) and various utilities.
 """
 
-__version__ = '0.6.0'
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("pipeline")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
 __author__ = 'Babak Bandpey <bb@cocode.dk>'
 
 # Essential imports
@@ -12,24 +19,23 @@ from .config import OPENAI_API_KEY
 from .chatbot import Chatbot
 
 # Utility imports
-from .pipeline_utils import PipelineUtils
-from .file_utils import FileUtils
-from .chatbot_utils import ChatbotUtils
-from .logger import logger
+from .utils.pipeline_utils import PipelineUtils
+from .utils.file_utils import FileUtils
+from .utils.chatbot_utils import ChatbotUtils
+from .utils.logger import logger
 
 # RAG (Retrieval-Augmented Generation) imports
-from .txt_rag import TxtRAG
-from .web_rag import WebRAG
-from .py_rag import PyRAG
-from .pdf_rag import PdfRAG
-from .json_rag import JsonRAG
-from .md_rag import MdRAG
+from .rag import (
+    TxtRAG,
+    WebRAG,
+    PyRAG,
+    PdfRAG,
+    JsonRAG,
+    MdRAG,
+)
 
-# Nmap project imports
-from .nmap_project.nmap_scanner import NmapScanner
-from .nmap_project.searchsploit import SearchSploit
-from .ytdpl.youtube_caption_downloader import YouTubeCaptionDownloader as YTCaptionDownloader
-
+# YouTube downloader import
+from .ytdpl.youtube_caption_downloader import YouTubeCaptionDownloader
 
 __all__ = [
     'OPENAI_API_KEY',
@@ -44,7 +50,5 @@ __all__ = [
     'JsonRAG',
     'MdRAG',
     'logger',
-    'NmapScanner',
-    'SearchSploit',
-    'YTCaptionDownloader'
+    'YouTubeCaptionDownloader'
 ]

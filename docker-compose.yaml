@@ -2,10 +2,18 @@ services:
   pipeline:
     build: .
     volumes:
-      - ./:/app
-    network_mode: "host"
-    ports:
-      - "1234:1234"
-    command: ["sh", "-c", "service postgresql start && msfconsole"]
-    stdin_open: true
-    tty: true
+      - .:/app
+      - ~/.ssh:/root/.ssh:ro  # Includes config file
+      - ~/.gitconfig:/root/.gitconfig:ro  # Optional: mount global git config
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}  # Reads from host's .env file
+      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME}  # Removed default
+      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL}  # Removed default
+    network_mode: "host"  # To access external Ollama
+    command: >
+      fish -c "
+        pip install -e . &&
+        fish
+      "
+    stdin_open: true   # Keep STDIN open
+    tty: true         # Allocate a pseudo-TTY

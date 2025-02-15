@@ -9,3 +9,4 @@ policies/
 **/*.log
 commit/*.txt
 yt/**
+**/diff.txt

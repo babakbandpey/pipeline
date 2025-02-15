@@ -1,3 +1,15 @@
+# Pipeline Examples
+
+Example scripts demonstrating various uses of the Pipeline package.
+
+## Categories
+- Analysis: Code analysis and documentation tools
+- Content: Content processing and organization
+- Tools: Development utilities
+- Basic: Simple usage examples
+
+See individual directories for specific examples.
+
 ### Introduction
 
 The provided JSON file contains detailed descriptions of various Python scripts located in the `/app/scripts` directory. Each script serves a specific purpose, ranging from file organization and content analysis to code quality checks and automated Git operations. This analysis aims to summarize the key functionalities and workflows of these scripts, providing a comprehensive overview of their roles within the codebase.
@@ -401,4 +413,3 @@ The Python file `/app/scripts/readme_writer.py` is designed to automate the proc
    - The chatbot's collection is deleted, and its chat history is cleared after generating the summary.
 
 The script is executed by running the `main()` function, which orchestrates the entire process of scanning directories, analyzing files, and generating `README.md` files.
-

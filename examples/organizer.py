@@ -16,8 +16,6 @@ def analyzer(chatbot, prompt: str) -> Union[dict, str]:
     :return: JSON response
     """
 
-    logger.info("prompt %s...", prompt)
-
     response = chatbot.invoke(
         f"""
         {prompt}

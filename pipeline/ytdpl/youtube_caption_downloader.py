@@ -103,7 +103,10 @@ class YouTubeCaptionDownloader:
             cmd = ['yt-dlp',
                    '--skip-download',
                    '--write-auto-sub',
-                   '--sub-format', 'vtt',
+                    # "--write-sub",
+                   '--sub-format',
+                #    'vtt',
+                    'none',
                    '--output', output_template,
                    video_url]
 

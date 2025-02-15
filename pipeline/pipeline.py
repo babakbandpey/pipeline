@@ -8,7 +8,6 @@ Git Repo: https://github.com/babakbandpey/pipeline
 """
 
 import uuid
-import logging
 from typing import Union
 from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -20,6 +19,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from openai import APIConnectionError
 from .logger import logger
+from .config import MAX_INPUT_LENGTH
 
 
 class PipelineConfig:
@@ -152,15 +152,15 @@ class PipelineSetup(PipelineConfig):
 
 
     def setup_chat(self):
-        """
-        Sets up the Ollama object with the specified base URL and model.
-        params: base_url: The base URL of the Ollama server.
-        params: model: The name of the model to use.
-        returns: The initialized Ollama object.
-        """
+        """Sets up the chat model."""
+        if not self.base_url:
+            raise ValueError("base_url is required")
+
+        if not self.model and not self.openai_api_key:
+            raise ValueError("Either model or openai_api_key is required")
+
         try:
             if self.openai_api_key:
-                # OpenAI
                 self.chat = ChatOpenAI(
                     base_url=self.base_url,
                     temperature=0,
@@ -188,6 +188,14 @@ class PipelineSetup(PipelineConfig):
             self.logger.error("Unknown exception occurred: %s", e)
             raise e
 
+
+class PipelineError(Exception):
+    """Base exception for Pipeline errors"""
+    pass
+
+class LLMConnectionError(PipelineError):
+    """Raised when connection to LLM fails"""
+    pass
 
 class Pipeline(PipelineSetup):
     """
@@ -229,9 +237,10 @@ class Pipeline(PipelineSetup):
                 {"input": prompt},
                 {"configurable": {"session_id": self.session_id}},
             )
+        except APIConnectionError as e:
+            raise LLMConnectionError(f"Failed to connect to LLM: {e}") from e
         except Exception as e:
-            self.logger.error("Error invoking the chatbot: %s", e)
-            raise e
+            raise PipelineError(f"Error invoking chatbot: {e}") from e
 
         return response
 
@@ -248,12 +257,19 @@ class Pipeline(PipelineSetup):
 
     def modify_chat_history(self, num_messages: int) -> bool:
         """
-        Deletes the chat history.
-        params: num_messages: The number of messages to keep.
-            If set to 0, all messages will be deleted.
-            If number is positive deleting from the start of the list.
-            If number is negative deleting from the end of the list.
-        returns: True if the chat history is modified, False otherwise.
+        Modifies the chat history by keeping/removing messages.
+
+        Args:
+            num_messages: Number of messages to keep.
+                If 0: Delete all messages
+                If positive: Delete from start
+                If negative: Delete from end
+
+        Returns:
+            bool: True if history was modified
+
+        Raises:
+            ValueError: If num_messages is None
         """
         if num_messages is None:
             self.logger.warning("Chat history is not initialized")
@@ -352,11 +368,22 @@ class Pipeline(PipelineSetup):
         return document_splitter.split_documents(data)
 
 
-    def sanitize_input(self, input_str) -> str:
+    def sanitize_input(self, input_str: str) -> str:
         """
         Sanitizes user input to prevent injection attacks.
-        params: input_str: The input text to sanitize.
-        returns: The sanitized input text.
+        Args:
+            input_str: Input text to sanitize
+        Returns:
+            Sanitized input text
         """
-        # Implement input sanitization logic here
-        return input_str
+        if not isinstance(input_str, str):
+            raise ValueError("Input must be a string")
+
+        # Remove control characters
+        sanitized = ''.join(char for char in input_str if ord(char) >= 32)
+
+        # Limit length
+        if len(sanitized) > MAX_INPUT_LENGTH:
+            raise ValueError(f"Input exceeds maximum length of {MAX_INPUT_LENGTH}")
+
+        return sanitized

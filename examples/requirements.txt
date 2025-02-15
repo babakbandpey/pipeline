@@ -1,0 +1,7 @@
+python-dotenv
+cryptography
+pytest
+pylint
+black
+mypy
+pandoc

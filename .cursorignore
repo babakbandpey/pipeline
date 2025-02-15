@@ -1,0 +1,9 @@
+.env1/
+.github/
+yt/
+.cursorignore
+.gitignore
+.env
+*.txt
+*.log
+*.csv

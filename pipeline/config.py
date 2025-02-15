@@ -6,6 +6,7 @@ import os
 import base64
 from getpass import getpass
 import logging
+from pathlib import Path
 
 import sys
 print(sys.path)
@@ -22,14 +23,28 @@ load_dotenv()
 
 # Configure logging
 
-OPENAI_API_KEY = None
+# Paths
+BASE_DIR = Path(__file__).parent.parent
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+# Logging config
+LOG_FILE = LOG_DIR / "pipeline.log"
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOG_LEVEL = logging.INFO
+
+# Model config
+MAX_INPUT_LENGTH = 4096
+DEFAULT_CHUNK_SIZE = 500
+DEFAULT_CHUNK_OVERLAP = 0
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 AZURE_OPENAI_ENDPOINT = None
 AZURE_OPENAI_API_KEY_1 = None
-LOGGING_LEVEL = logging.INFO
 
 logging.basicConfig(
-    level=LOGGING_LEVEL,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=LOG_LEVEL,
+    format=LOG_FORMAT
 )
 logger = logging.getLogger(__name__)
 

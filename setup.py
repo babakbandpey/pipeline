@@ -23,14 +23,11 @@ def read_requirements(file_path):
         requirements_path = Path(file_path)
         if requirements_path.is_file():
             with requirements_path.open(encoding='utf-8') as f:
-                requirements = f.read().splitlines()
-                # Add validation logic here if needed
-                return requirements
-        else:
-            logger.warning("%s not found, proceeding without it.", file_path)
-            return []
-    except Exception as e:
-        logger.error("An error occurred while reading %s: %s", file_path, e)
+                return f.read().splitlines()
+        logger.warning("%s not found, proceeding without it.", file_path)
+        return []
+    except (OSError, IOError) as e:
+        logger.error("File error reading %s: %s", file_path, e)
         return []
 
 def read_long_description(file_path):
@@ -43,21 +40,18 @@ def read_long_description(file_path):
         readme_path = Path(file_path)
         if readme_path.is_file():
             with readme_path.open(encoding='utf-8') as f:
-                long_description = f.read()
-                # Add validation logic here if needed
-                return long_description
-        else:
-            logger.warning("%s not found, proceeding without it.", file_path)
-            return ""
-    except Exception as e:
-        logger.error("An error occurred while reading %s: %s", file_path, e)
+                return f.read()
+        logger.warning("%s not found, proceeding without it.", file_path)
+        return ""
+    except (OSError, IOError) as e:
+        logger.error("File error reading %s: %s", file_path, e)
         return ""
 
 # Read requirements.txt
 required = read_requirements('requirements.txt')
 
 # Read README.md
-long_description = read_long_description('README.md')
+description_long = read_long_description('README.md')
 
 setup(
     name='pipeline',
@@ -68,7 +62,7 @@ setup(
     author='Babak Bandpey',
     author_email='bb@cocode.dk',
     description='A chatbot pipeline.',
-    long_description=long_description,
+    long_description=description_long,
     long_description_content_type='text/markdown',
     url='https://github.com/babakbandpey/pipeline',
     include_package_data=True,
@@ -79,4 +73,20 @@ setup(
         'Programming Language :: Python :: 3.11',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    keywords=['chatbot', 'pipeline', 'openai', 'rag'],
+    project_urls={
+        'Bug Reports': 'https://github.com/babakbandpey/pipeline/issues',
+        'Source': 'https://github.com/babakbandpey/pipeline',
+    },
+    package_data={
+        'pipeline': ['rag/*.json', 'rag/*.md'],
+    },
+    extras_require={
+        'dev': [
+            'pytest',
+            'pylint',
+            'black',
+            'mypy',
+        ],
+    },
 )
