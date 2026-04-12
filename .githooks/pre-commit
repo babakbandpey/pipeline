@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+
+SMOKE_CMD="ruff check . && pytest --tb=short -q"
+
+$SMOKE_CMD
